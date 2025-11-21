@@ -9,10 +9,14 @@ function extractTextureData(texture, textureInfo) {
 
   // Get the image data and convert to data URL for display
   let imageDataUrl = null;
+  let fileSizeBytes = 0;
   const image = texture.getImage();
   const mimeType = texture.getMimeType() || 'image/png';
 
   if (image && image.length > 0) {
+    // Store the actual file size in bytes
+    fileSizeBytes = image.length;
+
     // Convert Uint8Array to base64 data URL
     const blob = new Blob([image], { type: mimeType });
     imageDataUrl = URL.createObjectURL(blob);
@@ -23,6 +27,7 @@ function extractTextureData(texture, textureInfo) {
     uri: texture.getURI() || null,
     mimeType: mimeType,
     size: texture.getSize() || null,
+    fileSizeBytes: fileSizeBytes,
     imageDataUrl: imageDataUrl,
     // TextureInfo settings
     texCoord: textureInfo?.getTexCoord?.() || 0,
