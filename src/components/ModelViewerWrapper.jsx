@@ -1,15 +1,21 @@
 import { useEffect, useRef } from 'react';
 import '@google/model-viewer';
+import { useSceneStore } from '../store/sceneStore';
 
 function ModelViewerWrapper({ modelUrl, style }) {
   const modelViewerRef = useRef(null);
+  const isolationMode = useSceneStore((state) => state.isolationMode);
+  const isolatedModelUrl = useSceneStore((state) => state.isolatedModelUrl);
 
   useEffect(() => {
     // The model-viewer web component is registered globally
     // No additional setup needed here
   }, []);
 
-  if (!modelUrl) {
+  // Use isolated model URL when in isolation mode, otherwise use the regular model URL
+  const displayUrl = isolationMode && isolatedModelUrl ? isolatedModelUrl : modelUrl;
+
+  if (!displayUrl) {
     return (
       <div
         style={{
@@ -33,7 +39,7 @@ function ModelViewerWrapper({ modelUrl, style }) {
   return (
     <model-viewer
       ref={modelViewerRef}
-      src={modelUrl}
+      src={displayUrl}
       alt="3D Model"
       camera-controls
       auto-rotate

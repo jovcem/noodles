@@ -11,6 +11,14 @@ export function cacheDocument(document) {
 }
 
 /**
+ * Retrieves the cached GLTF document
+ * @returns {Document|null} The cached document or null if not loaded
+ */
+export function getDocument() {
+  return cachedDocument;
+}
+
+/**
  * Exports the currently loaded GLB model to GLTF format (JSON + separate bin)
  * Downloads the .gltf file without embedded resources
  */
