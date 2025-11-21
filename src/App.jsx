@@ -26,7 +26,7 @@ function App() {
         pointerEvents: 'none',
         userSelect: 'none',
       }}>
-        noodles
+        noodles v.0.1
       </div>
 
       <div style={{

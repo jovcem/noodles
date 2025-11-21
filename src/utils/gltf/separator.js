@@ -31,6 +31,64 @@ function findMeshById(document, meshId) {
 }
 
 /**
+ * Copies a texture from source document to target document
+ * @param {Document} targetDoc - The target gltf-transform document
+ * @param {Texture} sourceTexture - The source texture to copy
+ * @returns {Texture} The copied texture in the target document
+ */
+function copyTexture(targetDoc, sourceTexture) {
+  // Create a new texture
+  const clonedTexture = targetDoc.createTexture(sourceTexture.getName());
+
+  // Copy the image data
+  const sourceImage = sourceTexture.getImage();
+  if (sourceImage) {
+    clonedTexture.setImage(sourceImage);
+    const mimeType = sourceTexture.getMimeType();
+    if (mimeType) {
+      clonedTexture.setMimeType(mimeType);
+    }
+  }
+
+  // Try to copy texture sampler settings if they exist
+  // Note: Some texture objects might not have these methods
+  try {
+    if (typeof sourceTexture.getMagFilter === 'function') {
+      const magFilter = sourceTexture.getMagFilter();
+      if (magFilter !== null && magFilter !== undefined) {
+        clonedTexture.setMagFilter(magFilter);
+      }
+    }
+
+    if (typeof sourceTexture.getMinFilter === 'function') {
+      const minFilter = sourceTexture.getMinFilter();
+      if (minFilter !== null && minFilter !== undefined) {
+        clonedTexture.setMinFilter(minFilter);
+      }
+    }
+
+    if (typeof sourceTexture.getWrapS === 'function') {
+      const wrapS = sourceTexture.getWrapS();
+      if (wrapS !== null && wrapS !== undefined) {
+        clonedTexture.setWrapS(wrapS);
+      }
+    }
+
+    if (typeof sourceTexture.getWrapT === 'function') {
+      const wrapT = sourceTexture.getWrapT();
+      if (wrapT !== null && wrapT !== undefined) {
+        clonedTexture.setWrapT(wrapT);
+      }
+    }
+  } catch (error) {
+    // Silently ignore sampler copy errors
+    console.warn('Could not copy texture sampler settings:', error);
+  }
+
+  return clonedTexture;
+}
+
+/**
  * Creates an isolated GLTF document containing only the specified mesh
  * @param {Document} sourceDocument - The original gltf-transform document
  * @param {string} meshId - The mesh ID to isolate
@@ -125,10 +183,86 @@ function buildIsolatedDocument(sourceDocument, meshId, useGreyMaterial = true) {
     if (useGreyMaterial) {
       clonedPrim.setMaterial(greyMaterial);
     } else {
-      // Clone the original material
+      // Copy the original material manually (can't use clone across documents)
       const sourceMaterial = sourcePrim.getMaterial();
       if (sourceMaterial) {
-        const clonedMaterial = sourceMaterial.clone();
+        const clonedMaterial = isolatedDoc.createMaterial(sourceMaterial.getName());
+
+        // Copy basic PBR properties
+        clonedMaterial.setBaseColorFactor(sourceMaterial.getBaseColorFactor());
+        clonedMaterial.setMetallicFactor(sourceMaterial.getMetallicFactor());
+        clonedMaterial.setRoughnessFactor(sourceMaterial.getRoughnessFactor());
+        clonedMaterial.setEmissiveFactor(sourceMaterial.getEmissiveFactor());
+        clonedMaterial.setAlphaMode(sourceMaterial.getAlphaMode());
+        clonedMaterial.setAlphaCutoff(sourceMaterial.getAlphaCutoff());
+        clonedMaterial.setDoubleSided(sourceMaterial.getDoubleSided());
+
+        // Copy textures if present
+        const baseColorTexture = sourceMaterial.getBaseColorTexture();
+        if (baseColorTexture) {
+          const textureInfo = sourceMaterial.getBaseColorTextureInfo();
+          const clonedTexture = copyTexture(isolatedDoc, baseColorTexture);
+          clonedMaterial.setBaseColorTexture(clonedTexture);
+          if (textureInfo && typeof textureInfo.getTexCoord === 'function') {
+            clonedMaterial.getBaseColorTextureInfo()
+              .setTexCoord(textureInfo.getTexCoord());
+          }
+        }
+
+        const metallicRoughnessTexture = sourceMaterial.getMetallicRoughnessTexture();
+        if (metallicRoughnessTexture) {
+          const textureInfo = sourceMaterial.getMetallicRoughnessTextureInfo();
+          const clonedTexture = copyTexture(isolatedDoc, metallicRoughnessTexture);
+          clonedMaterial.setMetallicRoughnessTexture(clonedTexture);
+          if (textureInfo && typeof textureInfo.getTexCoord === 'function') {
+            clonedMaterial.getMetallicRoughnessTextureInfo()
+              .setTexCoord(textureInfo.getTexCoord());
+          }
+        }
+
+        const normalTexture = sourceMaterial.getNormalTexture();
+        if (normalTexture) {
+          const textureInfo = sourceMaterial.getNormalTextureInfo();
+          const clonedTexture = copyTexture(isolatedDoc, normalTexture);
+          clonedMaterial.setNormalTexture(clonedTexture);
+          if (textureInfo) {
+            const clonedInfo = clonedMaterial.getNormalTextureInfo();
+            if (typeof textureInfo.getTexCoord === 'function') {
+              clonedInfo.setTexCoord(textureInfo.getTexCoord());
+            }
+            if (typeof textureInfo.getScale === 'function') {
+              clonedInfo.setScale(textureInfo.getScale());
+            }
+          }
+        }
+
+        const occlusionTexture = sourceMaterial.getOcclusionTexture();
+        if (occlusionTexture) {
+          const textureInfo = sourceMaterial.getOcclusionTextureInfo();
+          const clonedTexture = copyTexture(isolatedDoc, occlusionTexture);
+          clonedMaterial.setOcclusionTexture(clonedTexture);
+          if (textureInfo) {
+            const clonedInfo = clonedMaterial.getOcclusionTextureInfo();
+            if (typeof textureInfo.getTexCoord === 'function') {
+              clonedInfo.setTexCoord(textureInfo.getTexCoord());
+            }
+            if (typeof textureInfo.getStrength === 'function') {
+              clonedInfo.setStrength(textureInfo.getStrength());
+            }
+          }
+        }
+
+        const emissiveTexture = sourceMaterial.getEmissiveTexture();
+        if (emissiveTexture) {
+          const textureInfo = sourceMaterial.getEmissiveTextureInfo();
+          const clonedTexture = copyTexture(isolatedDoc, emissiveTexture);
+          clonedMaterial.setEmissiveTexture(clonedTexture);
+          if (textureInfo && typeof textureInfo.getTexCoord === 'function') {
+            clonedMaterial.getEmissiveTextureInfo()
+              .setTexCoord(textureInfo.getTexCoord());
+          }
+        }
+
         isolatedDoc.getRoot().listMaterials().push(clonedMaterial);
         clonedPrim.setMaterial(clonedMaterial);
       }

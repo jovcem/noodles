@@ -1,19 +1,19 @@
 import { NODE_COLORS } from '../../constants/colorConstants';
 import { DARK_THEME } from '../../constants/themeConfig';
 
-const VERTICAL_SPACING = 100;
-const HORIZONTAL_SPACING = 250;
+const VERTICAL_SPACING = 150;
+const HORIZONTAL_SPACING = 200;
 
 export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
   const nodes = [];
   const edges = [];
 
-  let yOffset = 0;
+  let xOffset = 0;
 
-  sceneData.nodes.forEach((nodeData, index) => {
-    const xPosition = 50;
-    const yPosition = yOffset;
-    yOffset += VERTICAL_SPACING;
+  sceneData.nodes.forEach((nodeData) => {
+    const xPosition = xOffset;
+    const yPosition = 50;
+    xOffset += HORIZONTAL_SPACING;
 
     nodes.push({
       id: nodeData.id,
@@ -56,11 +56,11 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     });
   });
 
-  let meshYOffset = 0;
+  let meshXOffset = 0;
   sceneData.meshes.forEach((meshData) => {
-    const xPosition = 50 + HORIZONTAL_SPACING;
-    const yPosition = meshYOffset;
-    meshYOffset += VERTICAL_SPACING;
+    const xPosition = meshXOffset;
+    const yPosition = 50 + VERTICAL_SPACING;
+    meshXOffset += HORIZONTAL_SPACING;
 
     nodes.push({
       id: meshData.id,
@@ -92,11 +92,11 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     });
   });
 
-  let materialYOffset = 0;
+  let materialXOffset = 0;
   sceneData.materials.forEach((materialData) => {
-    const xPosition = 50 + HORIZONTAL_SPACING * 2;
-    const yPosition = materialYOffset;
-    materialYOffset += VERTICAL_SPACING;
+    const xPosition = materialXOffset;
+    const yPosition = 50 + VERTICAL_SPACING * 2;
+    materialXOffset += HORIZONTAL_SPACING;
 
     nodes.push({
       id: materialData.id,

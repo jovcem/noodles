@@ -18,6 +18,7 @@ function MeshProperties({ data }) {
   } = propertyPaneStyles(currentTheme);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [useGreyMaterial, setUseGreyMaterial] = useState(false);
   const isolationMode = useSceneStore((state) => state.isolationMode);
   const isolatedMeshId = useSceneStore((state) => state.isolatedMeshId);
   const setIsolationMode = useSceneStore((state) => state.setIsolationMode);
@@ -39,7 +40,7 @@ function MeshProperties({ data }) {
         }
 
         // Export isolated mesh with grey material
-        const isolatedBlobUrl = await exportIsolatedGLB(document, data.id, true);
+        const isolatedBlobUrl = await exportIsolatedGLB(document, data.id, useGreyMaterial);
 
         // Update store
         setIsolationMode(data.id, isolatedBlobUrl);
@@ -98,6 +99,36 @@ function MeshProperties({ data }) {
       )}
 
       <div style={propertyGroupStyle}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '12px',
+          padding: '8px 0',
+        }}>
+          <input
+            type="checkbox"
+            id="grey-material-toggle"
+            checked={useGreyMaterial}
+            onChange={(e) => setUseGreyMaterial(e.target.checked)}
+            disabled={isCurrentlyIsolated}
+            style={{
+              marginRight: '8px',
+              cursor: isCurrentlyIsolated ? 'not-allowed' : 'pointer',
+            }}
+          />
+          <label
+            htmlFor="grey-material-toggle"
+            style={{
+              color: currentTheme.text,
+              fontSize: '14px',
+              cursor: isCurrentlyIsolated ? 'not-allowed' : 'pointer',
+              userSelect: 'none',
+              opacity: isCurrentlyIsolated ? 0.5 : 1,
+            }}
+          >
+            Override material
+          </label>
+        </div>
         <button
           onClick={handleIsolationToggle}
           disabled={isLoading}
