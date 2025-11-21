@@ -12,6 +12,7 @@ import RGBAValueNode from './material-nodes/RGBAValueNode';
 import FloatValueNode from './material-nodes/FloatValueNode';
 import RGBValueNode from './material-nodes/RGBValueNode';
 import BooleanValueNode from './material-nodes/BooleanValueNode';
+import SplitRGBNode from './material-nodes/SplitRGBNode';
 
 // Register custom node types
 const nodeTypes = {
@@ -21,6 +22,7 @@ const nodeTypes = {
   floatValue: FloatValueNode,
   rgbValue: RGBValueNode,
   booleanValue: BooleanValueNode,
+  splitRGB: SplitRGBNode,
 };
 
 function MaterialDetailView() {
@@ -82,6 +84,11 @@ function MaterialDetailView() {
           nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           fitView
+          fitViewOptions={{
+            padding: 0.15,
+            minZoom: 0.3,
+            maxZoom: 1.2,
+          }}
           style={{ background: currentTheme.background }}
           nodesDraggable={true}
           nodesConnectable={false}

@@ -1,3 +1,5 @@
+import { splitRGBChannels } from '../image/channelSplitter.js';
+
 /**
  * Extracts texture data from a texture and its texture info
  * @param {Texture} texture - The gltf-transform texture
@@ -38,7 +40,7 @@ function extractTextureData(texture, textureInfo) {
   };
 }
 
-export function extractSceneData(document) {
+export async function extractSceneData(document) {
   const sceneData = {
     nodes: [],
     meshes: [],
@@ -118,7 +120,8 @@ export function extractSceneData(document) {
     sceneData.meshes.push(meshData);
   });
 
-  allMaterials.forEach((material, index) => {
+  for (let index = 0; index < allMaterials.length; index++) {
+    const material = allMaterials[index];
     const materialData = {
       id: `material-${index}`,
       name: material.getName() || `Material ${index}`,
@@ -147,8 +150,41 @@ export function extractSceneData(document) {
       doubleSided: material.getDoubleSided(),
     };
 
+    // Split metallicRoughness texture into separate channels if it exists
+    if (materialData.textures.metallicRoughness?.imageDataUrl) {
+      try {
+        const channels = await splitRGBChannels(
+          materialData.textures.metallicRoughness.imageDataUrl,
+          materialData.textures.metallicRoughness.size
+        );
+
+        materialData.textures.metallicRoughnessChannels = {
+          occlusion: {
+            ...materialData.textures.metallicRoughness,
+            name: 'Occlusion (R)',
+            imageDataUrl: channels.red,
+            channel: 'red',
+          },
+          roughness: {
+            ...materialData.textures.metallicRoughness,
+            name: 'Roughness (G)',
+            imageDataUrl: channels.green,
+            channel: 'green',
+          },
+          metalness: {
+            ...materialData.textures.metallicRoughness,
+            name: 'Metalness (B)',
+            imageDataUrl: channels.blue,
+            channel: 'blue',
+          },
+        };
+      } catch (error) {
+        console.error('Error splitting metallicRoughness texture:', error);
+      }
+    }
+
     sceneData.materials.push(materialData);
-  });
+  }
 
   return sceneData;
 }

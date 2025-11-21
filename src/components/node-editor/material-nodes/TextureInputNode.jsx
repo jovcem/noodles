@@ -70,8 +70,19 @@ function TextureInputNode({ data }) {
     }
   };
 
+  // Check if this node should have an input handle (for channel nodes)
+  const hasInput = data.hasInput || false;
+
   return (
     <div style={nodeStyle}>
+      {hasInput && (
+        <Handle
+          type="target"
+          position={Position.Left}
+          style={handleStyle}
+        />
+      )}
+
       <Handle
         type="source"
         position={Position.Right}

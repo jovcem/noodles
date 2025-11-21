@@ -6,7 +6,7 @@ export async function glbToNodes(glbFile) {
   try {
     const document = await parseGLB(glbFile);
 
-    const sceneData = extractSceneData(document);
+    const sceneData = await extractSceneData(document);
 
     const graph = buildReactFlowGraph(sceneData);
 
