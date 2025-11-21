@@ -2,12 +2,16 @@ import DropZone from './components/DropZone'
 import ActionButtons from './components/ActionButtons'
 import ModelViewer from './components/3d-viewer/ModelViewer'
 import NodeEditor from './components/node-editor/NodeEditor'
+import MaterialDetailView from './components/node-editor/MaterialDetailView'
 import PropertyPanel from './components/propertyPane/PropertyPanel'
 import ThemeToggle from './components/ThemeToggle'
 import { useTheme } from './contexts/ThemeContext'
+import { useSceneStore } from './store/sceneStore'
 
 function App() {
   const { currentTheme } = useTheme();
+  const materialDetailMode = useSceneStore((state) => state.materialDetailMode);
+
   return (
     <div className="app-container" style={{ backgroundColor: currentTheme.background }}>
       <div style={{
@@ -57,8 +61,14 @@ function App() {
           backgroundColor: currentTheme.background,
           border: `1px solid ${currentTheme.border}`
         }}>
-          <NodeEditor />
-          <PropertyPanel />
+          {materialDetailMode ? (
+            <MaterialDetailView />
+          ) : (
+            <>
+              <NodeEditor />
+              <PropertyPanel />
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -50,6 +50,22 @@ function NodeEditor() {
     [sceneData, setSelectedNode]
   );
 
+  const onNodeDoubleClick = useCallback(
+    (event, node) => {
+      if (!sceneData) return;
+
+      // Handle material node double-click to open material detail view
+      if (node.data.nodeType === 'material') {
+        const materialData = sceneData.materials.find((m) => m.id === node.id);
+        if (materialData) {
+          const enterMaterialDetail = useSceneStore.getState().enterMaterialDetail;
+          enterMaterialDetail(materialData);
+        }
+      }
+    },
+    [sceneData]
+  );
+
   // Update node styles when selection changes
   useEffect(() => {
     if (!selectedNode) return;
@@ -88,6 +104,7 @@ function NodeEditor() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
+        onNodeDoubleClick={onNodeDoubleClick}
         fitView
         style={{ background: currentTheme.background }}
       >

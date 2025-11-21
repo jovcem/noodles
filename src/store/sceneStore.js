@@ -12,6 +12,8 @@ export const useSceneStore = create((set, get) => ({
   isolatedMeshId: null,
   isolatedModelUrl: null,
   originalModelUrl: null,
+  materialDetailMode: false,
+  materialDetailData: null,
 
   // Actions
   loadModel: (file) => set({ currentModel: file }),
@@ -44,6 +46,21 @@ export const useSceneStore = create((set, get) => ({
       isolatedMeshId: null,
       isolatedModelUrl: null,
       originalModelUrl: null,
+    });
+  },
+
+  // Material detail mode actions
+  enterMaterialDetail: (materialData) => {
+    set({
+      materialDetailMode: true,
+      materialDetailData: materialData,
+    });
+  },
+
+  exitMaterialDetail: () => {
+    set({
+      materialDetailMode: false,
+      materialDetailData: null,
     });
   },
 }))
