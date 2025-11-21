@@ -1,12 +1,15 @@
 import DropZone from './components/DropZone'
 import ActionButtons from './components/ActionButtons'
-import ModelViewer from './components/ModelViewer'
-import NodeEditor from './components/NodeEditor'
+import ModelViewer from './components/3d-viewer/ModelViewer'
+import NodeEditor from './components/node-editor/NodeEditor'
 import PropertyPanel from './components/propertyPane/PropertyPanel'
+import ThemeToggle from './components/ThemeToggle'
+import { useTheme } from './contexts/ThemeContext'
 
 function App() {
+  const { currentTheme } = useTheme();
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ backgroundColor: currentTheme.background }}>
       <div style={{
         position: 'absolute',
         bottom: '10px',
@@ -14,7 +17,7 @@ function App() {
         fontSize: '12px',
         opacity: 0.4,
         fontWeight: 'normal',
-        color: '#888',
+        color: currentTheme.textSecondary,
         zIndex: 1000,
         pointerEvents: 'none',
         userSelect: 'none',
@@ -33,17 +36,27 @@ function App() {
         <div style={{
           display: 'flex',
           alignItems: 'center',
+          gap: '10px',
         }}>
           <ActionButtons />
+          <ThemeToggle />
         </div>
       </div>
 
       <div className="split-container">
-        <div className="viewer-panel">
+        <div className="viewer-panel" style={{
+          backgroundColor: currentTheme.background,
+          border: `1px solid ${currentTheme.border}`,
+          borderRight: 'none'
+        }}>
           <ModelViewer />
         </div>
 
-        <div className="editor-panel" style={{ position: 'relative' }}>
+        <div className="editor-panel" style={{
+          position: 'relative',
+          backgroundColor: currentTheme.background,
+          border: `1px solid ${currentTheme.border}`
+        }}>
           <NodeEditor />
           <PropertyPanel />
         </div>

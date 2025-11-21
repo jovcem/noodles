@@ -6,8 +6,7 @@
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  background-color: #1a1a1a;
-  color: #ffffff;
+  /* Background and color are set dynamically via ThemeContext */
 }
 
 .app-container {
@@ -18,12 +17,11 @@ body {
 }
 
 .app-header {
-  background-color: #2a2a2a;
   padding: 1rem;
-  border-bottom: 1px solid #3a3a3a;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  /* Colors are set dynamically via ThemeContext */
 }
 
 .app-header h1 {
@@ -44,12 +42,11 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #1a1a1a;
-  border: 1px solid #3a3a3a;
+  /* Colors are set dynamically via ThemeContext */
 }
 
 .viewer-panel {
-  border-right: 2px solid #3a3a3a;
+  /* Border colors are set dynamically via ThemeContext */
 }
 
 @media (max-width: 768px) {
@@ -58,7 +55,6 @@ body {
   }
 
   .viewer-panel {
-    border-right: none;
-    border-bottom: 2px solid #3a3a3a;
+    /* Border colors are set dynamically via ThemeContext */
   }
 }

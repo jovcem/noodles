@@ -1,10 +1,12 @@
 import { useCallback, useEffect } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, applyNodeChanges, applyEdgeChanges } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { useSceneStore } from '../store/sceneStore';
-import { getNodeColor, THEME_COLORS, NODE_COLORS } from '../constants/colorConstants';
+import { useSceneStore } from '../../store/sceneStore';
+import { getNodeColor } from '../../constants/colorConstants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function NodeEditor() {
+  const { currentTheme } = useTheme();
   const nodes = useSceneStore((state) => state.nodes);
   const edges = useSceneStore((state) => state.edges);
   const sceneData = useSceneStore((state) => state.sceneData);
@@ -73,7 +75,7 @@ function NodeEditor() {
   if (nodes.length === 0) {
     return (
       <div style={emptyStateStyle}>
-        <p style={placeholderStyle}>Load a GLB file to see the scene graph</p>
+        <p style={placeholderStyle(currentTheme)}>Load a GLB file to see the scene graph</p>
       </div>
     );
   }
@@ -87,12 +89,12 @@ function NodeEditor() {
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
         fitView
-        style={{ background: THEME_COLORS.background }}
+        style={{ background: currentTheme.background }}
       >
-        <Background color={THEME_COLORS.borderLight} gap={16} />
-        <Controls style={{ button: { backgroundColor: THEME_COLORS.surface, color: THEME_COLORS.text } }} />
+        <Background color={currentTheme.borderLight} gap={16} />
+        <Controls style={{ button: { backgroundColor: currentTheme.surface, color: currentTheme.text } }} />
         <MiniMap
-          style={{ background: THEME_COLORS.surface }}
+          style={{ background: currentTheme.surface }}
           nodeColor={(node) => getNodeColor(node.data.nodeType)}
         />
       </ReactFlow>
@@ -113,9 +115,9 @@ const emptyStateStyle = {
   justifyContent: 'center',
 };
 
-const placeholderStyle = {
-  color: THEME_COLORS.textSecondary,
+const placeholderStyle = (currentTheme) => ({
+  color: currentTheme.textSecondary,
   fontSize: '0.9rem',
-};
+});
 
 export default NodeEditor;

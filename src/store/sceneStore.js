@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { cleanupBlobUrl } from '../utils/separator'
+import { cleanupBlobUrl } from '../utils/gltf/separator'
 
 export const useSceneStore = create((set, get) => ({
   // State

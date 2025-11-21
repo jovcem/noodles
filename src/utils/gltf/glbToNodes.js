@@ -1,6 +1,6 @@
-import { parseGLB } from './gltf/parser.js';
-import { extractSceneData } from './gltf/nodeExtractor.js';
-import { buildReactFlowGraph } from './gltf/graphBuilder.js';
+import { parseGLB } from './parser.js';
+import { extractSceneData } from './nodeExtractor.js';
+import { buildReactFlowGraph } from '../graph/graphBuilder.js';
 
 export async function glbToNodes(glbFile) {
   try {

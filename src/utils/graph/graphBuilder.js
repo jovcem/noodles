@@ -1,9 +1,10 @@
-import { NODE_COLORS, THEME_COLORS } from '../../constants/colorConstants';
+import { NODE_COLORS } from '../../constants/colorConstants';
+import { DARK_THEME } from '../../constants/themeConfig';
 
 const VERTICAL_SPACING = 100;
 const HORIZONTAL_SPACING = 250;
 
-export function buildReactFlowGraph(sceneData) {
+export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
   const nodes = [];
   const edges = [];
 
@@ -23,8 +24,8 @@ export function buildReactFlowGraph(sceneData) {
       },
       position: { x: xPosition, y: yPosition },
       style: {
-        background: THEME_COLORS.surface,
-        color: THEME_COLORS.text,
+        background: theme.surface,
+        color: theme.text,
         border: `1px solid ${NODE_COLORS.node}`,
         borderRadius: '8px',
         padding: '10px',
@@ -50,7 +51,7 @@ export function buildReactFlowGraph(sceneData) {
         target: childId,
         type: 'default',
         animated: false,
-        style: { stroke: THEME_COLORS.textSecondary, strokeWidth: 2 },
+        style: { stroke: theme.textSecondary, strokeWidth: 2 },
       });
     });
   });
@@ -70,8 +71,8 @@ export function buildReactFlowGraph(sceneData) {
       },
       position: { x: xPosition, y: yPosition },
       style: {
-        background: THEME_COLORS.surface,
-        color: THEME_COLORS.text,
+        background: theme.surface,
+        color: theme.text,
         border: `1px solid ${NODE_COLORS.mesh}`,
         borderRadius: '8px',
         padding: '10px',
@@ -106,8 +107,8 @@ export function buildReactFlowGraph(sceneData) {
       },
       position: { x: xPosition, y: yPosition },
       style: {
-        background: THEME_COLORS.surface,
-        color: THEME_COLORS.text,
+        background: theme.surface,
+        color: theme.text,
         border: `1px solid ${NODE_COLORS.material}`,
         borderRadius: '8px',
         padding: '10px',

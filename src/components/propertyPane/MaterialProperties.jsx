@@ -2,8 +2,10 @@ import PropertyRow from './PropertyRow';
 import { propertyPaneStyles } from '../../constants/propertyPaneStyles';
 import { NODE_COLORS } from '../../constants/colorConstants';
 import { formatColor, formatFloat } from '../../utils/formatters';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function MaterialProperties({ data }) {
+  const { currentTheme } = useTheme();
   const {
     sectionStyle,
     headerStyle,
@@ -14,7 +16,7 @@ function MaterialProperties({ data }) {
     valueStyle,
     colorPreviewStyle,
     colorSwatchStyle,
-  } = propertyPaneStyles;
+  } = propertyPaneStyles(currentTheme);
 
   return (
     <div>

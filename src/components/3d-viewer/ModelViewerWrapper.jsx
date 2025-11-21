@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import '@google/model-viewer';
-import { useSceneStore } from '../store/sceneStore';
+import { useSceneStore } from '../../store/sceneStore';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function ModelViewerWrapper({ modelUrl, style }) {
+  const { currentTheme } = useTheme();
   const modelViewerRef = useRef(null);
   const isolationMode = useSceneStore((state) => state.isolationMode);
   const isolatedModelUrl = useSceneStore((state) => state.isolatedModelUrl);
@@ -24,7 +26,7 @@ function ModelViewerWrapper({ modelUrl, style }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#888',
+          color: currentTheme.textSecondary,
           fontSize: '18px',
           ...style,
         }}
@@ -47,7 +49,7 @@ function ModelViewerWrapper({ modelUrl, style }) {
       style={{
         width: '100%',
         height: '100%',
-        backgroundColor: '#1a1a1a',
+        backgroundColor: currentTheme.background,
         ...style,
       }}
     >

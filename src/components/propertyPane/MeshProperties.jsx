@@ -3,17 +3,19 @@ import PropertyRow from './PropertyRow';
 import { propertyPaneStyles } from '../../constants/propertyPaneStyles';
 import { NODE_COLORS } from '../../constants/colorConstants';
 import { useSceneStore } from '../../store/sceneStore';
-import { getDocument } from '../../utils/gltfExporter';
-import { exportIsolatedGLB } from '../../utils/separator';
+import { getDocument } from '../../utils/gltf/gltfExporter';
+import { exportIsolatedGLB } from '../../utils/gltf/separator';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function MeshProperties({ data }) {
+  const { currentTheme } = useTheme();
   const {
     sectionStyle,
     headerStyle,
     propertyGroupStyle,
     subHeaderStyle,
     listItemStyle,
-  } = propertyPaneStyles;
+  } = propertyPaneStyles(currentTheme);
 
   const [isLoading, setIsLoading] = useState(false);
   const isolationMode = useSceneStore((state) => state.isolationMode);

@@ -1,4 +1,8 @@
-export const propertyPaneStyles = {
+/**
+ * Property pane styles that adapt to the current theme
+ * Use these functions by passing currentTheme from useTheme()
+ */
+export const propertyPaneStyles = (currentTheme) => ({
   sectionStyle: {
     marginBottom: '15px',
   },
@@ -6,7 +10,7 @@ export const propertyPaneStyles = {
   headerStyle: {
     fontSize: '14px',
     fontWeight: 'bold',
-    color: '#fff',
+    color: currentTheme.text,
     paddingLeft: '10px',
     paddingBottom: '5px',
   },
@@ -19,16 +23,16 @@ export const propertyPaneStyles = {
     display: 'flex',
     justifyContent: 'space-between',
     padding: '8px 0',
-    borderBottom: '1px solid #333',
+    borderBottom: `1px solid ${currentTheme.borderLight}`,
   },
 
   labelStyle: {
-    color: '#888',
+    color: currentTheme.textSecondary,
     fontSize: '13px',
   },
 
   valueStyle: {
-    color: '#fff',
+    color: currentTheme.text,
     fontSize: '13px',
     fontWeight: '500',
   },
@@ -36,13 +40,13 @@ export const propertyPaneStyles = {
   subHeaderStyle: {
     fontSize: '12px',
     fontWeight: 'bold',
-    color: '#aaa',
+    color: currentTheme.textTertiary,
     marginBottom: '8px',
   },
 
   listItemStyle: {
     fontSize: '12px',
-    color: '#888',
+    color: currentTheme.textSecondary,
     padding: '4px 0',
     paddingLeft: '10px',
   },
@@ -53,7 +57,7 @@ export const propertyPaneStyles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '8px 0',
-    borderBottom: '1px solid #333',
+    borderBottom: `1px solid ${currentTheme.borderLight}`,
   },
 
   colorPreviewStyle: {
@@ -66,6 +70,6 @@ export const propertyPaneStyles = {
     width: '20px',
     height: '20px',
     borderRadius: '4px',
-    border: '1px solid #555',
+    border: `1px solid ${currentTheme.border}`,
   },
-};
+});

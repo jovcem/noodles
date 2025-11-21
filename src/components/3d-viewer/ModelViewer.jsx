@@ -1,4 +1,4 @@
-import { useSceneStore } from '../store/sceneStore';
+import { useSceneStore } from '../../store/sceneStore';
 import ModelViewerWrapper from './ModelViewerWrapper';
 
 function ModelViewer() {

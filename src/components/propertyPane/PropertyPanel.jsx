@@ -1,9 +1,11 @@
 import { useSceneStore } from '../../store/sceneStore';
+import { useTheme } from '../../contexts/ThemeContext';
 import NodeProperties from './NodeProperties';
 import MeshProperties from './MeshProperties';
 import MaterialProperties from './MaterialProperties';
 
 function PropertyPanel() {
+  const { currentTheme } = useTheme();
   const selectedNode = useSceneStore((state) => state.selectedNode);
   const setSelectedNode = useSceneStore((state) => state.setSelectedNode);
 
@@ -29,10 +31,10 @@ function PropertyPanel() {
   };
 
   return (
-    <div style={panelStyle}>
-      <div style={headerStyle}>
-        <h3 style={titleStyle}>Properties</h3>
-        <button onClick={handleClose} style={closeButtonStyle}>
+    <div style={panelStyle(currentTheme)}>
+      <div style={headerStyle(currentTheme)}>
+        <h3 style={titleStyle(currentTheme)}>Properties</h3>
+        <button onClick={handleClose} style={closeButtonStyle(currentTheme)}>
           ×
         </button>
       </div>
@@ -41,40 +43,40 @@ function PropertyPanel() {
   );
 }
 
-const panelStyle = {
+const panelStyle = (currentTheme) => ({
   position: 'absolute',
   top: '10px',
   right: '10px',
   width: '300px',
   maxHeight: 'calc(100% - 20px)',
-  backgroundColor: '#2a2a2a',
-  border: '1px solid #444',
+  backgroundColor: currentTheme.surface,
+  border: `1px solid ${currentTheme.border}`,
   borderRadius: '8px',
   zIndex: 1000,
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
-};
+});
 
-const headerStyle = {
+const headerStyle = (currentTheme) => ({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '15px',
-  borderBottom: '1px solid #444',
-};
+  borderBottom: `1px solid ${currentTheme.border}`,
+});
 
-const titleStyle = {
+const titleStyle = (currentTheme) => ({
   margin: 0,
   fontSize: '16px',
   fontWeight: 'bold',
-  color: '#fff',
-};
+  color: currentTheme.text,
+});
 
-const closeButtonStyle = {
+const closeButtonStyle = (currentTheme) => ({
   background: 'none',
   border: 'none',
-  color: '#888',
+  color: currentTheme.textSecondary,
   fontSize: '24px',
   cursor: 'pointer',
   padding: '0',
@@ -83,7 +85,7 @@ const closeButtonStyle = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-};
+});
 
 const contentStyle = {
   padding: '15px',

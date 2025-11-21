@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSceneStore } from '../store/sceneStore';
-import { glbToNodes } from '../utils/glbToNodes';
+import { glbToNodes } from '../utils/gltf/glbToNodes';
 import { validateGLTFFile } from '../utils/fileValidation';
-import { THEME_COLORS } from '../constants/colorConstants';
+import { useTheme } from '../contexts/ThemeContext';
 
 function DropZone() {
+  const { currentTheme } = useTheme();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState('');
   const [error, setError] = useState('');
@@ -106,12 +107,12 @@ function DropZone() {
         onDrop={handleDrop}
         onClick={handleClick}
         style={{
-          border: isDragging ? `2px dashed ${THEME_COLORS.primary}` : `2px dashed ${THEME_COLORS.border}`,
+          border: isDragging ? `2px dashed ${currentTheme.primary}` : `2px dashed ${currentTheme.border}`,
           borderRadius: '8px',
           padding: '10px 20px',
           textAlign: 'center',
           cursor: 'pointer',
-          backgroundColor: isDragging ? 'rgba(100, 108, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+          backgroundColor: isDragging ? currentTheme.active : currentTheme.hover,
           transition: 'all 0.3s ease',
           maxHeight: '60px',
           display: 'flex',
@@ -130,17 +131,17 @@ function DropZone() {
 
         {uploadedFileName ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ color: THEME_COLORS.primary, fontWeight: 'bold', fontSize: '14px' }}>
+            <span style={{ color: currentTheme.primary, fontWeight: 'bold', fontSize: '14px' }}>
               {uploadedFileName}
             </span>
-            <span style={{ fontSize: '12px', color: THEME_COLORS.textSecondary }}>
+            <span style={{ fontSize: '12px', color: currentTheme.textSecondary }}>
               (click or drop to change)
             </span>
           </div>
         ) : (
-          <div style={{ fontSize: '14px' }}>
+          <div style={{ fontSize: '14px', color: currentTheme.text }}>
             <span style={{ fontWeight: 'bold' }}>Drop GLB file here</span>
-            <span style={{ color: THEME_COLORS.textSecondary, marginLeft: '8px' }}>or click to browse</span>
+            <span style={{ color: currentTheme.textSecondary, marginLeft: '8px' }}>or click to browse</span>
           </div>
         )}
       </div>
@@ -150,10 +151,10 @@ function DropZone() {
           style={{
             marginTop: '10px',
             padding: '10px 15px',
-            backgroundColor: THEME_COLORS.errorBg,
-            border: `1px solid ${THEME_COLORS.errorBorder}`,
+            backgroundColor: currentTheme.errorBg,
+            border: `1px solid ${currentTheme.errorBorder}`,
             borderRadius: '6px',
-            color: THEME_COLORS.error,
+            color: currentTheme.error,
             fontSize: '13px',
           }}
         >

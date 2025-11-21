@@ -1,15 +1,17 @@
 import PropertyRow from './PropertyRow';
 import { propertyPaneStyles } from '../../constants/propertyPaneStyles';
 import { NODE_COLORS } from '../../constants/colorConstants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function NodeProperties({ data }) {
+  const { currentTheme } = useTheme();
   const {
     sectionStyle,
     headerStyle,
     propertyGroupStyle,
     subHeaderStyle,
     listItemStyle,
-  } = propertyPaneStyles;
+  } = propertyPaneStyles(currentTheme);
 
   return (
     <div>

@@ -1,5 +1,5 @@
 import { WebIO } from '@gltf-transform/core';
-import { cacheDocument } from '../gltfExporter';
+import { cacheDocument } from './gltfExporter';
 
 export async function parseGLB(file) {
   try {
