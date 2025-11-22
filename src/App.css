@@ -35,7 +35,13 @@ body {
   overflow: hidden;
 }
 
-.viewer-panel,
+.viewer-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  /* Colors are set dynamically via ThemeContext */
+}
+
 .editor-panel {
   flex: 1;
   display: flex;

@@ -1,8 +1,11 @@
 import { Handle, Position } from 'reactflow';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useSceneStore } from '../../../store/sceneStore';
 
 function TextureInputNode({ data }) {
   const { currentTheme } = useTheme();
+  const setViewerMode = useSceneStore((state) => state.setViewerMode);
+  const load2DImage = useSceneStore((state) => state.load2DImage);
 
   const nodeStyle = {
     background: currentTheme.surface,
@@ -55,6 +58,14 @@ function TextureInputNode({ data }) {
 
   const texture = data.texture;
 
+  // Handle double-click to load texture in 2D viewer
+  const handleDoubleClick = () => {
+    if (texture.imageDataUrl) {
+      load2DImage(texture.imageDataUrl);
+      setViewerMode('2d');
+    }
+  };
+
   // Calculate file size in KB or MB
   const getFileSizeText = () => {
     if (!texture.fileSizeBytes || texture.fileSizeBytes === 0) return null;
@@ -74,7 +85,7 @@ function TextureInputNode({ data }) {
   const hasInput = data.hasInput || false;
 
   return (
-    <div style={nodeStyle}>
+    <div style={nodeStyle} onDoubleClick={handleDoubleClick}>
       {hasInput && (
         <Handle
           type="target"

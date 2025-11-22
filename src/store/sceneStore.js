@@ -4,6 +4,7 @@ import { cleanupBlobUrl } from '../utils/gltf/separator'
 export const useSceneStore = create((set, get) => ({
   // State
   currentModel: null,
+  current2DImage: null,
   nodes: [],
   edges: [],
   sceneData: null,
@@ -14,9 +15,11 @@ export const useSceneStore = create((set, get) => ({
   originalModelUrl: null,
   materialDetailMode: false,
   materialDetailData: null,
+  viewerMode: '3d', // '2d' or '3d'
 
   // Actions
   loadModel: (file) => set({ currentModel: file }),
+  load2DImage: (imageUrl) => set({ current2DImage: imageUrl }),
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
   setSceneData: (sceneData) => set({ sceneData }),
@@ -63,4 +66,7 @@ export const useSceneStore = create((set, get) => ({
       materialDetailData: null,
     });
   },
+
+  // Viewer mode actions
+  setViewerMode: (mode) => set({ viewerMode: mode }),
 }))

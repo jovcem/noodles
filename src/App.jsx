@@ -1,6 +1,6 @@
 import DropZone from './components/DropZone'
 import ActionButtons from './components/ActionButtons'
-import ModelViewer from './components/3d-viewer/ModelViewer'
+import ViewerPanel from './components/ViewerPanel'
 import NodeEditor from './components/node-editor/NodeEditor'
 import MaterialDetailView from './components/node-editor/MaterialDetailView'
 import PropertyPanel from './components/propertyPane/PropertyPanel'
@@ -53,7 +53,7 @@ function App() {
           border: `1px solid ${currentTheme.border}`,
           borderRight: 'none'
         }}>
-          <ModelViewer />
+          <ViewerPanel />
         </div>
 
         <div className="editor-panel" style={{
