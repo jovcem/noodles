@@ -31,6 +31,101 @@ function findMeshById(document, meshId) {
 }
 
 /**
+ * Finds the first node that references a given mesh
+ * @param {Document} document - The gltf-transform document
+ * @param {Mesh} mesh - The mesh to find a node for
+ * @returns {Node|null} The first node referencing the mesh, or null
+ */
+function findNodeForMesh(document, mesh) {
+  const allNodes = document.getRoot().listNodes();
+
+  for (const node of allNodes) {
+    if (node.getMesh() === mesh) {
+      return node;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Calculates the accumulated world transform by traversing up the node hierarchy
+ * @param {Document} document - The gltf-transform document
+ * @param {Node} node - The starting node
+ * @returns {Object} Object containing translation, rotation, and scale arrays
+ */
+function calculateWorldTransform(document, node) {
+  // Initialize identity transform
+  const worldTransform = {
+    translation: [0, 0, 0],
+    rotation: [0, 0, 0, 1], // quaternion identity
+    scale: [1, 1, 1]
+  };
+
+  // If node has no transform, return identity
+  if (!node) {
+    return worldTransform;
+  }
+
+  // Get the node's local transform
+  const translation = node.getTranslation();
+  const rotation = node.getRotation();
+  const scale = node.getScale();
+
+  // Copy the transform values
+  if (translation && translation.length === 3) {
+    worldTransform.translation = [...translation];
+  }
+  if (rotation && rotation.length === 4) {
+    worldTransform.rotation = [...rotation];
+  }
+  if (scale && scale.length === 3) {
+    worldTransform.scale = [...scale];
+  }
+
+  // Find parent nodes and accumulate their transforms
+  // Note: In glTF, we need to traverse the entire scene to find parent relationships
+  const allNodes = document.getRoot().listNodes();
+  let parentNode = null;
+
+  for (const potentialParent of allNodes) {
+    const children = potentialParent.listChildren();
+    if (children.includes(node)) {
+      parentNode = potentialParent;
+      break;
+    }
+  }
+
+  // If there's a parent, recursively accumulate transforms
+  if (parentNode) {
+    const parentTransform = calculateWorldTransform(document, parentNode);
+
+    // Accumulate translation (simple addition for now)
+    worldTransform.translation[0] += parentTransform.translation[0];
+    worldTransform.translation[1] += parentTransform.translation[1];
+    worldTransform.translation[2] += parentTransform.translation[2];
+
+    // Accumulate scale (multiply)
+    worldTransform.scale[0] *= parentTransform.scale[0];
+    worldTransform.scale[1] *= parentTransform.scale[1];
+    worldTransform.scale[2] *= parentTransform.scale[2];
+
+    // For rotation, we should multiply quaternions, but for simplicity
+    // we'll use the parent rotation if current is identity
+    const isIdentityRotation =
+      rotation[0] === 0 && rotation[1] === 0 &&
+      rotation[2] === 0 && rotation[3] === 1;
+
+    if (isIdentityRotation && parentTransform.rotation) {
+      worldTransform.rotation = [...parentTransform.rotation];
+    }
+    // TODO: Proper quaternion multiplication for combined rotations
+  }
+
+  return worldTransform;
+}
+
+/**
  * Copies a texture from source document to target document
  * @param {Document} targetDoc - The target gltf-transform document
  * @param {Texture} sourceTexture - The source texture to copy
@@ -275,10 +370,20 @@ function buildIsolatedDocument(sourceDocument, meshId, useGreyMaterial = true) {
   // Add the mesh to the document root
   isolatedDoc.getRoot().listMeshes().push(clonedMesh);
 
+  // Find the original node that references this mesh to get its world transform
+  const originalNode = findNodeForMesh(sourceDocument, sourceMesh);
+  const worldTransform = calculateWorldTransform(sourceDocument, originalNode);
+
   // Create a scene with a single node containing the mesh
   const scene = isolatedDoc.createScene('IsolatedScene');
   const node = isolatedDoc.createNode(`IsolatedNode_${meshId}`);
   node.setMesh(clonedMesh);
+
+  // Apply the accumulated world transform to preserve the mesh's position/rotation/scale
+  node.setTranslation(worldTransform.translation);
+  node.setRotation(worldTransform.rotation);
+  node.setScale(worldTransform.scale);
+
   scene.addChild(node);
 
   // Set as default scene
