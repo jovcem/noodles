@@ -75,13 +75,41 @@ export async function extractSceneData(document) {
       name: node.getName() || `Node ${index}`,
       type: 'node',
       meshId: null,
+      cameraId: null,
+      skinId: null,
       children: [],
+      subType: 'transform', // Default to transform-only
     };
 
     const mesh = node.getMesh();
     if (mesh) {
       const meshIndex = meshIndexMap.get(mesh);
       nodeData.meshId = `mesh-${meshIndex}`;
+    }
+
+    const camera = node.getCamera();
+    if (camera) {
+      const cameraIndex = root.listCameras().indexOf(camera);
+      nodeData.cameraId = `camera-${cameraIndex}`;
+    }
+
+    const skin = node.getSkin();
+    if (skin) {
+      const skinIndex = root.listSkins().indexOf(skin);
+      nodeData.skinId = `skin-${skinIndex}`;
+    }
+
+    // Classify node subtype based on what it references
+    if (mesh && skin) {
+      nodeData.subType = 'skinned-mesh';
+    } else if (mesh) {
+      nodeData.subType = 'mesh';
+    } else if (camera) {
+      nodeData.subType = 'camera';
+    } else if (nodeData.children.length > 0 || node.listChildren().length > 0) {
+      nodeData.subType = 'transform';
+    } else {
+      nodeData.subType = 'empty';
     }
 
     const nodeChildren = node.listChildren();

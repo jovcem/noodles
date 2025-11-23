@@ -1,4 +1,4 @@
-import { NODE_COLORS } from '../../constants/colorConstants';
+import { NODE_COLORS, getNodeSubtypeColor, getNodeSubtypeIcon } from '../../constants/colorConstants';
 import { DARK_THEME } from '../../constants/themeConfig';
 
 const VERTICAL_SPACING = 150;
@@ -15,18 +15,24 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     const yPosition = 50;
     xOffset += HORIZONTAL_SPACING;
 
+    const subType = nodeData.subType || 'transform';
+    const subtypeColor = getNodeSubtypeColor(subType);
+    const subtypeIcon = getNodeSubtypeIcon(subType);
+
     nodes.push({
       id: nodeData.id,
       type: 'default',
       data: {
-        label: nodeData.name,
+        label: `${subtypeIcon} ${nodeData.name}`,
         nodeType: 'node',
+        subType: subType,
       },
       position: { x: xPosition, y: yPosition },
       style: {
         background: theme.surface,
         color: theme.text,
         border: `1px solid ${NODE_COLORS.node}`,
+        borderLeft: `4px solid ${subtypeColor}`,
         borderRadius: '8px',
         padding: '10px',
         minWidth: '150px',
