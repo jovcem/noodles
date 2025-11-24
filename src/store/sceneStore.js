@@ -16,6 +16,7 @@ export const useSceneStore = create((set, get) => ({
   materialDetailMode: false,
   materialDetailData: null,
   viewerMode: '3d', // '2d' or '3d'
+  isLoadingGraph: false,
 
   // Node filtering state (which subtypes to show)
   nodeFilters: {
@@ -34,6 +35,7 @@ export const useSceneStore = create((set, get) => ({
   setEdges: (edges) => set({ edges }),
   setSceneData: (sceneData) => set({ sceneData }),
   setSelectedNode: (selectedNode) => set({ selectedNode }),
+  setIsLoadingGraph: (isLoadingGraph) => set({ isLoadingGraph }),
 
   // Isolation mode actions
   setIsolationMode: (meshId, isolatedBlobUrl) => {

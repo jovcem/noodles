@@ -8,12 +8,66 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
   const nodes = [];
   const edges = [];
 
-  let xOffset = 0;
+  // Build a map for quick node lookup
+  const nodeMap = new Map();
+  sceneData.nodes.forEach(node => {
+    nodeMap.set(node.id, node);
+  });
 
+  // Find root nodes (nodes with no parent)
+  const allChildIds = new Set();
+  sceneData.nodes.forEach(node => {
+    node.children.forEach(childId => allChildIds.add(childId));
+  });
+
+  const rootNodes = sceneData.nodes.filter(node => !allChildIds.has(node.id));
+
+  // Calculate positions for nodes in a tree layout
+  const nodePositions = new Map();
+
+  function layoutNodeTree(nodeId, startX, level) {
+    const nodeData = nodeMap.get(nodeId);
+    if (!nodeData) return { width: 0, centerX: startX };
+
+    const children = nodeData.children.map(childId => nodeMap.get(childId)).filter(Boolean);
+
+    if (children.length === 0) {
+      // Leaf node
+      nodePositions.set(nodeId, { x: startX, y: level * VERTICAL_SPACING + 50 });
+      return { width: HORIZONTAL_SPACING, centerX: startX };
+    }
+
+    // Layout children first
+    let childX = startX;
+    const childLayouts = [];
+
+    children.forEach(child => {
+      const layout = layoutNodeTree(child.id, childX, level + 1);
+      childLayouts.push(layout);
+      childX += layout.width;
+    });
+
+    // Calculate total width and center position for parent
+    const totalWidth = childLayouts.reduce((sum, layout) => sum + layout.width, 0);
+    const firstChildCenter = childLayouts[0].centerX;
+    const lastChildCenter = childLayouts[childLayouts.length - 1].centerX;
+    const parentCenterX = (firstChildCenter + lastChildCenter) / 2;
+
+    nodePositions.set(nodeId, { x: parentCenterX, y: level * VERTICAL_SPACING + 50 });
+
+    return { width: totalWidth, centerX: parentCenterX };
+  }
+
+  // Layout each root node tree
+  let rootX = 0;
+  rootNodes.forEach(rootNode => {
+    const layout = layoutNodeTree(rootNode.id, rootX, 0);
+    rootX += layout.width + HORIZONTAL_SPACING;
+  });
+
+  // Create nodes with calculated positions
   sceneData.nodes.forEach((nodeData) => {
-    const xPosition = xOffset;
-    const yPosition = 50;
-    xOffset += HORIZONTAL_SPACING;
+    const position = nodePositions.get(nodeData.id) || { x: 0, y: 0 };
 
     const subType = nodeData.subType || 'transform';
     const subtypeColor = getNodeSubtypeColor(subType);
@@ -27,7 +81,7 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
         nodeType: 'node',
         subType: subType,
       },
-      position: { x: xPosition, y: yPosition },
+      position: position,
       style: {
         background: theme.surface,
         color: theme.text,
@@ -62,11 +116,23 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     });
   });
 
-  let meshXOffset = 0;
+  // Position meshes below their parent nodes
   sceneData.meshes.forEach((meshData) => {
-    const xPosition = meshXOffset;
-    const yPosition = 50 + VERTICAL_SPACING;
-    meshXOffset += HORIZONTAL_SPACING;
+    // Find the parent node that references this mesh
+    const parentNode = sceneData.nodes.find(node => node.meshId === meshData.id);
+
+    let xPosition = 0;
+    let yPosition = 50 + VERTICAL_SPACING;
+
+    if (parentNode) {
+      const parentPosition = nodePositions.get(parentNode.id);
+      if (parentPosition) {
+        xPosition = parentPosition.x;
+        yPosition = parentPosition.y + VERTICAL_SPACING;
+      }
+    }
+
+    nodePositions.set(meshData.id, { x: xPosition, y: yPosition });
 
     nodes.push({
       id: meshData.id,
@@ -98,11 +164,23 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     });
   });
 
-  let materialXOffset = 0;
+  // Position materials below their parent meshes
   sceneData.materials.forEach((materialData) => {
-    const xPosition = materialXOffset;
-    const yPosition = 50 + VERTICAL_SPACING * 2;
-    materialXOffset += HORIZONTAL_SPACING;
+    // Find the parent mesh that references this material
+    const parentMesh = sceneData.meshes.find(mesh =>
+      mesh.materialIds.includes(materialData.id)
+    );
+
+    let xPosition = 0;
+    let yPosition = 50 + VERTICAL_SPACING * 2;
+
+    if (parentMesh) {
+      const parentPosition = nodePositions.get(parentMesh.id);
+      if (parentPosition) {
+        xPosition = parentPosition.x;
+        yPosition = parentPosition.y + VERTICAL_SPACING;
+      }
+    }
 
     nodes.push({
       id: materialData.id,

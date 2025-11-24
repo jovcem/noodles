@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, applyNodeChanges, applyEdgeChanges } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useSceneStore } from '../../store/sceneStore';
-import { getNodeColor } from '../../constants/colorConstants';
+import { getNodeColor, getNodeSubtypeColor } from '../../constants/colorConstants';
 import { useTheme } from '../../contexts/ThemeContext';
 import NodeFilterControls from './NodeFilterControls';
 
@@ -15,6 +15,7 @@ function NodeEditor() {
   const sceneData = useSceneStore((state) => state.sceneData);
   const selectedNode = useSceneStore((state) => state.selectedNode);
   const nodeFilters = useSceneStore((state) => state.nodeFilters);
+  const isLoadingGraph = useSceneStore((state) => state.isLoadingGraph);
   const setNodes = useSceneStore((state) => state.setNodes);
   const setEdges = useSceneStore((state) => state.setEdges);
   const setSelectedNode = useSceneStore((state) => state.setSelectedNode);
@@ -98,19 +99,29 @@ function NodeEditor() {
 
   // Update node styles when selection changes
   useEffect(() => {
-    if (!selectedNode) return;
-
     const updatedNodes = nodes.map((node) => {
-      const isSelected = node.id === selectedNode.id;
+      const isSelected = selectedNode && node.id === selectedNode.id;
       const nodeColor = getNodeColor(node.data.nodeType);
+      const borderWidth = isSelected ? '2px' : '1px';
+
+      // For nodes with subtypes, preserve the left border accent color
+      let borderLeftStyle;
+      if (node.data.nodeType === 'node' && node.data.subType) {
+        const subtypeColor = getNodeSubtypeColor(node.data.subType);
+        borderLeftStyle = `4px solid ${subtypeColor}`;
+      } else {
+        borderLeftStyle = `${borderWidth} solid ${nodeColor}`;
+      }
 
       return {
         ...node,
         style: {
           ...node.style,
           boxShadow: isSelected ? `0 0 0 3px ${nodeColor}` : 'none',
-          borderWidth: isSelected ? '2px' : '1px',
-          borderColor: nodeColor,
+          borderTop: `${borderWidth} solid ${nodeColor}`,
+          borderRight: `${borderWidth} solid ${nodeColor}`,
+          borderBottom: `${borderWidth} solid ${nodeColor}`,
+          borderLeft: borderLeftStyle,
         },
       };
     });
@@ -121,7 +132,9 @@ function NodeEditor() {
   if (filteredNodes.length === 0 && nodes.length === 0) {
     return (
       <div style={emptyStateStyle}>
-        <p style={placeholderStyle(currentTheme)}>Load a GLB file to see the scene graph</p>
+        <p style={placeholderStyle(currentTheme)}>
+          {isLoadingGraph ? 'Loading scene graph...' : 'Load a GLB file to see the scene graph'}
+        </p>
       </div>
     );
   }
@@ -163,6 +176,8 @@ function NodeEditor() {
           <MiniMap
             style={{ background: currentTheme.surface }}
             nodeColor={(node) => getNodeColor(node.data.nodeType)}
+            pannable
+            zoomable
           />
         </ReactFlow>
       </div>

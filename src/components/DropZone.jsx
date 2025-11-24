@@ -15,6 +15,7 @@ function DropZone() {
   const setNodes = useSceneStore((state) => state.setNodes);
   const setEdges = useSceneStore((state) => state.setEdges);
   const setSceneData = useSceneStore((state) => state.setSceneData);
+  const setIsLoadingGraph = useSceneStore((state) => state.setIsLoadingGraph);
 
   // Cleanup object URL on unmount
   useEffect(() => {
@@ -82,6 +83,7 @@ function DropZone() {
 
       // Parse GLB and update nodes/edges/sceneData
       try {
+        setIsLoadingGraph(true);
         const { nodes, edges, sceneData } = await glbToNodes(file);
         setNodes(nodes);
         setEdges(edges);
@@ -90,6 +92,8 @@ function DropZone() {
         console.error('Failed to parse GLB file:', error);
         setError(`Failed to parse file: ${error.message}`);
         // Don't clear the filename on error so user knows what failed
+      } finally {
+        setIsLoadingGraph(false);
       }
     }
   };
