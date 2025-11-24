@@ -17,6 +17,16 @@ export const useSceneStore = create((set, get) => ({
   materialDetailData: null,
   viewerMode: '3d', // '2d' or '3d'
 
+  // Node filtering state (which subtypes to show)
+  nodeFilters: {
+    transform: true,
+    empty: true,
+    mesh: true,
+    camera: true,
+    'skinned-mesh': true,
+    light: true,
+  },
+
   // Actions
   loadModel: (file) => set({ currentModel: file }),
   load2DImage: (imageUrl) => set({ current2DImage: imageUrl }),
@@ -69,4 +79,41 @@ export const useSceneStore = create((set, get) => ({
 
   // Viewer mode actions
   setViewerMode: (mode) => set({ viewerMode: mode }),
+
+  // Node filter actions
+  toggleNodeFilter: (subType) => set((state) => ({
+    nodeFilters: {
+      ...state.nodeFilters,
+      [subType]: !state.nodeFilters[subType],
+    },
+  })),
+
+  setNodeFilter: (subType, value) => set((state) => ({
+    nodeFilters: {
+      ...state.nodeFilters,
+      [subType]: value,
+    },
+  })),
+
+  showAllNodeTypes: () => set({
+    nodeFilters: {
+      transform: true,
+      empty: true,
+      mesh: true,
+      camera: true,
+      'skinned-mesh': true,
+      light: true,
+    },
+  }),
+
+  hideAllNodeTypes: () => set({
+    nodeFilters: {
+      transform: false,
+      empty: false,
+      mesh: false,
+      camera: false,
+      'skinned-mesh': false,
+      light: false,
+    },
+  }),
 }))
