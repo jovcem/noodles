@@ -79,6 +79,16 @@ export async function extractSceneData(document) {
       skinId: null,
       children: [],
       subType: 'transform', // Default to transform-only
+      // Local space transforms
+      translation: node.getTranslation(),
+      rotation: node.getRotation(),
+      scale: node.getScale(),
+      matrix: node.getMatrix(),
+      // World space transforms
+      worldTranslation: node.getWorldTranslation(),
+      worldRotation: node.getWorldRotation(),
+      worldScale: node.getWorldScale(),
+      worldMatrix: node.getWorldMatrix(),
     };
 
     const mesh = node.getMesh();

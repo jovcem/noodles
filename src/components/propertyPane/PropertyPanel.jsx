@@ -45,13 +45,12 @@ function PropertyPanel() {
 
 const panelStyle = (currentTheme) => ({
   position: 'absolute',
-  top: '10px',
-  right: '10px',
+  top: '22px',
+  right: '0px',
   width: '300px',
-  maxHeight: 'calc(100% - 20px)',
+  maxHeight: 'calc(100% - 22px)',
   backgroundColor: currentTheme.surface,
-  border: `1px solid ${currentTheme.border}`,
-  borderRadius: '8px',
+  borderLeft: `1px solid ${currentTheme.border}`,
   zIndex: 1000,
   display: 'flex',
   flexDirection: 'column',

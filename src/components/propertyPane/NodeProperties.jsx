@@ -1,4 +1,5 @@
 import PropertyRow from './PropertyRow';
+import TransformProperties from './TransformProperties';
 import { propertyPaneStyles } from '../../constants/propertyPaneStyles';
 import { NODE_COLORS } from '../../constants/colorConstants';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -27,6 +28,8 @@ function NodeProperties({ data }) {
           <PropertyRow label="Children" value={data.children.length} />
         )}
       </div>
+
+      <TransformProperties data={data} />
 
       {data.children && data.children.length > 0 && (
         <div style={propertyGroupStyle}>
