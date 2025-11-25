@@ -6,6 +6,8 @@ import { getNodeColor, getNodeSubtypeColor } from '../../constants/colorConstant
 import { useTheme } from '../../contexts/ThemeContext';
 import NodeFilterControls from './NodeFilterControls';
 import Toolbar from '../shared/Toolbar';
+import { getDocument } from '../../utils/gltf/gltfExporter';
+import { exportIsolatedGLB } from '../../utils/gltf/separator';
 
 function NodeEditor() {
   const { currentTheme } = useTheme();
@@ -83,7 +85,7 @@ function NodeEditor() {
   );
 
   const onNodeDoubleClick = useCallback(
-    (event, node) => {
+    async (_event, node) => {
       if (!sceneData) return;
 
       // Handle material node double-click to open material detail view
@@ -92,6 +94,42 @@ function NodeEditor() {
         if (materialData) {
           const enterMaterialDetail = useSceneStore.getState().enterMaterialDetail;
           enterMaterialDetail(materialData);
+        }
+      }
+
+      // Handle mesh node double-click to enter isolation mode
+      if (node.data.nodeType === 'mesh') {
+        const meshData = sceneData.meshes.find((m) => m.id === node.id);
+        if (!meshData) return;
+
+        const isolationMode = useSceneStore.getState().isolationMode;
+        const isolatedMeshId = useSceneStore.getState().isolatedMeshId;
+        const setIsolationMode = useSceneStore.getState().setIsolationMode;
+        const exitIsolationMode = useSceneStore.getState().exitIsolationMode;
+
+        // If this mesh is already isolated, exit isolation mode
+        if (isolationMode && isolatedMeshId === meshData.id) {
+          exitIsolationMode();
+          return;
+        }
+
+        // Enter isolation mode for this mesh
+        try {
+          const document = getDocument();
+          if (!document) {
+            console.error('No document loaded');
+            alert('No GLTF document loaded. Please load a model first.');
+            return;
+          }
+
+          // Export isolated mesh (without grey material override by default)
+          const isolatedBlobUrl = await exportIsolatedGLB(document, meshData.id, false);
+
+          // Update store
+          setIsolationMode(meshData.id, isolatedBlobUrl);
+        } catch (error) {
+          console.error('Error isolating mesh:', error);
+          alert(`Failed to isolate mesh: ${error.message}`);
         }
       }
     },
