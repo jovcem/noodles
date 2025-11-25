@@ -5,6 +5,7 @@ import { useSceneStore } from '../../store/sceneStore';
 import { getNodeColor, getNodeSubtypeColor } from '../../constants/colorConstants';
 import { useTheme } from '../../contexts/ThemeContext';
 import NodeFilterControls from './NodeFilterControls';
+import Toolbar from '../shared/Toolbar';
 
 function NodeEditor() {
   const { currentTheme } = useTheme();
@@ -142,15 +143,15 @@ function NodeEditor() {
   return (
     <div style={containerStyle}>
       {/* Toolbar */}
-      <div style={toolbarStyle(currentTheme)}>
-        <button
+      <Toolbar>
+        <Toolbar.Button
           ref={filterButtonRef}
-          style={menuButtonStyle(currentTheme, isFilterOpen)}
+          isActive={isFilterOpen}
           onClick={() => setIsFilterOpen(!isFilterOpen)}
         >
           Filter Nodes
-        </button>
-      </div>
+        </Toolbar.Button>
+      </Toolbar>
 
       {/* Filter Dropdown */}
       <NodeFilterControls
@@ -191,27 +192,6 @@ const containerStyle = {
   display: 'flex',
   flexDirection: 'column',
 };
-
-const toolbarStyle = (theme) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '0px',
-  background: theme.backgroundSecondary,
-  borderBottom: `1px solid ${theme.border}`,
-});
-
-const menuButtonStyle = (theme, isActive) => ({
-  padding: '4px 10px',
-  cursor: 'pointer',
-  backgroundColor: isActive ? theme.background : 'transparent',
-  color: isActive ? theme.text : theme.textSecondary,
-  fontWeight: isActive ? 600 : 400,
-  fontSize: '11px',
-  transition: 'all 0.2s ease',
-  userSelect: 'none',
-  border: 'none',
-  borderRight: `1px solid ${theme.border}`,
-});
 
 const graphContainerStyle = {
   flex: 1,
