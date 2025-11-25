@@ -8,19 +8,47 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
   const nodes = [];
   const edges = [];
 
+  // Filter out joint nodes - they should only appear in skin detail view
+  const nonJointNodes = sceneData.nodes.filter(node => node.subType !== 'joint');
+  const jointNodeIds = new Set(sceneData.nodes.filter(node => node.subType === 'joint').map(n => n.id));
+
   // Build a map for quick node lookup
   const nodeMap = new Map();
-  sceneData.nodes.forEach(node => {
+  nonJointNodes.forEach(node => {
     nodeMap.set(node.id, node);
   });
 
-  // Find root nodes (nodes with no parent)
-  const allChildIds = new Set();
-  sceneData.nodes.forEach(node => {
-    node.children.forEach(childId => allChildIds.add(childId));
+  // Rebuild parent-child relationships skipping joint nodes
+  // For each non-joint node, find its non-joint children (may skip multiple levels)
+  const effectiveChildren = new Map();
+
+  function findNonJointChildren(nodeId) {
+    const node = sceneData.nodes.find(n => n.id === nodeId);
+    if (!node) return [];
+
+    const children = [];
+    for (const childId of node.children) {
+      if (jointNodeIds.has(childId)) {
+        // Skip this joint and get its children instead
+        children.push(...findNonJointChildren(childId));
+      } else {
+        children.push(childId);
+      }
+    }
+    return children;
+  }
+
+  nonJointNodes.forEach(node => {
+    effectiveChildren.set(node.id, findNonJointChildren(node.id));
   });
 
-  const rootNodes = sceneData.nodes.filter(node => !allChildIds.has(node.id));
+  // Find root nodes (nodes with no parent in the non-joint graph)
+  const allChildIds = new Set();
+  effectiveChildren.forEach((children) => {
+    children.forEach(childId => allChildIds.add(childId));
+  });
+
+  const rootNodes = nonJointNodes.filter(node => !allChildIds.has(node.id));
 
   // Calculate positions for nodes in a tree layout
   const nodePositions = new Map();
@@ -29,7 +57,8 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     const nodeData = nodeMap.get(nodeId);
     if (!nodeData) return { width: 0, centerX: startX };
 
-    const children = nodeData.children.map(childId => nodeMap.get(childId)).filter(Boolean);
+    const childIds = effectiveChildren.get(nodeId) || [];
+    const children = childIds.map(childId => nodeMap.get(childId)).filter(Boolean);
 
     if (children.length === 0) {
       // Leaf node
@@ -65,8 +94,8 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     rootX += layout.width + HORIZONTAL_SPACING;
   });
 
-  // Create nodes with calculated positions
-  sceneData.nodes.forEach((nodeData) => {
+  // Create nodes with calculated positions (excluding joint nodes)
+  nonJointNodes.forEach((nodeData) => {
     const position = nodePositions.get(nodeData.id) || { x: 0, y: 0 };
 
     const subType = nodeData.subType || 'transform';
@@ -104,17 +133,39 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
       });
     }
 
-    nodeData.children.forEach((childId) => {
-      edges.push({
-        id: `${nodeData.id}-${childId}`,
-        source: nodeData.id,
-        target: childId,
-        type: 'default',
-        animated: false,
-        style: { stroke: theme.textSecondary, strokeWidth: 2 },
-      });
+    // Add edges to effective children (skipping joint nodes)
+    const childIds = effectiveChildren.get(nodeData.id) || [];
+    childIds.forEach((childId) => {
+      const childNode = nodeMap.get(childId);
+      if (childNode) {
+        edges.push({
+          id: `${nodeData.id}-${childId}`,
+          source: nodeData.id,
+          target: childId,
+          type: 'default',
+          animated: false,
+          style: { stroke: theme.textSecondary, strokeWidth: 2 },
+        });
+      }
     });
   });
+
+  // Helper function to find the effective non-joint parent
+  function findEffectiveParent(nodeId) {
+    const node = sceneData.nodes.find(n => n.id === nodeId);
+    if (!node) return null;
+
+    // If this is a non-joint node with a position, return it
+    if (!jointNodeIds.has(nodeId) && nodePositions.has(nodeId)) {
+      return nodeId;
+    }
+
+    // Otherwise, find the parent and recursively search up
+    const parentNode = sceneData.nodes.find(n => n.children.includes(nodeId));
+    if (!parentNode) return null;
+
+    return findEffectiveParent(parentNode.id);
+  }
 
   // Position meshes below their parent nodes
   sceneData.meshes.forEach((meshData) => {
@@ -125,10 +176,15 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     let yPosition = 50 + VERTICAL_SPACING;
 
     if (parentNode) {
-      const parentPosition = nodePositions.get(parentNode.id);
-      if (parentPosition) {
-        xPosition = parentPosition.x;
-        yPosition = parentPosition.y + VERTICAL_SPACING;
+      // Find the effective non-joint parent
+      const effectiveParentId = findEffectiveParent(parentNode.id);
+
+      if (effectiveParentId) {
+        const parentPosition = nodePositions.get(effectiveParentId);
+        if (parentPosition) {
+          xPosition = parentPosition.x;
+          yPosition = parentPosition.y + VERTICAL_SPACING;
+        }
       }
     }
 
@@ -200,6 +256,63 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
       },
     });
   });
+
+  // Position skins next to their parent meshes
+  if (sceneData.skins) {
+    sceneData.skins.forEach((skinData) => {
+      // Find the skinned mesh node that references this skin
+      const skinnedNode = sceneData.nodes.find(node => node.skinId === skinData.id);
+
+      let xPosition = 0;
+      let yPosition = 50 + VERTICAL_SPACING;
+
+      if (skinnedNode) {
+        // Find the effective non-joint parent
+        const effectiveParentId = findEffectiveParent(skinnedNode.id);
+
+        if (effectiveParentId) {
+          const nodePosition = nodePositions.get(effectiveParentId);
+          if (nodePosition) {
+            // Position to the right of the node
+            xPosition = nodePosition.x + HORIZONTAL_SPACING;
+            yPosition = nodePosition.y;
+          }
+        }
+      }
+
+      nodePositions.set(skinData.id, { x: xPosition, y: yPosition });
+
+      nodes.push({
+        id: skinData.id,
+        type: 'default',
+        data: {
+          label: `${skinData.name}\n(${skinData.joints.length} joints)`,
+          nodeType: 'skin',
+        },
+        position: { x: xPosition, y: yPosition },
+        style: {
+          background: theme.surface,
+          color: theme.text,
+          border: `1px solid ${NODE_COLORS.skin}`,
+          borderRadius: '8px',
+          padding: '10px',
+          minWidth: '150px',
+        },
+      });
+
+      // Add edge from skinned node to skin
+      if (skinnedNode) {
+        edges.push({
+          id: `${skinnedNode.id}-${skinData.id}`,
+          source: skinnedNode.id,
+          target: skinData.id,
+          type: 'default',
+          animated: false,
+          style: { stroke: NODE_COLORS.skin, strokeWidth: 2 },
+        });
+      }
+    });
+  }
 
   return { nodes, edges };
 }

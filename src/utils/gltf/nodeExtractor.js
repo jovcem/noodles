@@ -45,6 +45,7 @@ export async function extractSceneData(document) {
     nodes: [],
     meshes: [],
     materials: [],
+    skins: [],
   };
 
   const root = document.getRoot();
@@ -58,15 +59,18 @@ export async function extractSceneData(document) {
   const allNodes = root.listNodes();
   const allMeshes = root.listMeshes();
   const allMaterials = root.listMaterials();
+  const allSkins = root.listSkins();
 
   // Create index maps for O(1) lookups instead of O(n) indexOf
   const nodeIndexMap = new Map();
   const meshIndexMap = new Map();
   const materialIndexMap = new Map();
+  const skinIndexMap = new Map();
 
   allNodes.forEach((node, index) => nodeIndexMap.set(node, index));
   allMeshes.forEach((mesh, index) => meshIndexMap.set(mesh, index));
   allMaterials.forEach((material, index) => materialIndexMap.set(material, index));
+  allSkins.forEach((skin, index) => skinIndexMap.set(skin, index));
 
   // Process nodes with O(1) lookups
   allNodes.forEach((node, index) => {
@@ -105,7 +109,7 @@ export async function extractSceneData(document) {
 
     const skin = node.getSkin();
     if (skin) {
-      const skinIndex = root.listSkins().indexOf(skin);
+      const skinIndex = skinIndexMap.get(skin);
       nodeData.skinId = `skin-${skinIndex}`;
     }
 
@@ -223,6 +227,78 @@ export async function extractSceneData(document) {
 
     sceneData.materials.push(materialData);
   }
+
+  // Extract skins and mark joint nodes
+  const jointNodeIds = new Set();
+
+  allSkins.forEach((skin, index) => {
+    const skinData = {
+      id: `skin-${index}`,
+      name: skin.getName() || `Skin ${index}`,
+      type: 'skin',
+      joints: [],
+      skeleton: null,
+      inverseBindMatricesCount: null,
+    };
+
+    // Extract joint node references
+    const joints = skin.listJoints();
+    joints.forEach((jointNode) => {
+      const jointIndex = nodeIndexMap.get(jointNode);
+      if (jointIndex !== undefined) {
+        const jointId = `node-${jointIndex}`;
+        skinData.joints.push(jointId);
+        jointNodeIds.add(jointId);
+      }
+    });
+
+    // Extract skeleton root (optional)
+    const skeleton = skin.getSkeleton();
+    if (skeleton) {
+      const skeletonIndex = nodeIndexMap.get(skeleton);
+      if (skeletonIndex !== undefined) {
+        const skeletonId = `node-${skeletonIndex}`;
+        skinData.skeleton = skeletonId;
+        // Ensure skeleton root is also marked as a joint
+        jointNodeIds.add(skeletonId);
+      }
+    }
+
+    // Get inverse bind matrices count (metadata only)
+    const inverseBindMatrices = skin.getInverseBindMatrices();
+    if (inverseBindMatrices) {
+      skinData.inverseBindMatricesCount = inverseBindMatrices.getCount();
+    }
+
+    sceneData.skins.push(skinData);
+  });
+
+  // Mark nodes that are joints with a special subtype
+  // Also mark all descendants of joints as part of the skeleton
+  const skeletonNodeIds = new Set(jointNodeIds);
+
+  // Recursively find all descendants of joint nodes
+  function markDescendants(nodeId) {
+    const node = sceneData.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    node.children.forEach(childId => {
+      if (!skeletonNodeIds.has(childId)) {
+        skeletonNodeIds.add(childId);
+        markDescendants(childId);
+      }
+    });
+  }
+
+  // Mark all joint descendants
+  jointNodeIds.forEach(jointId => markDescendants(jointId));
+
+  // This overrides any previous subtype (empty, transform, etc.)
+  sceneData.nodes.forEach((nodeData) => {
+    if (skeletonNodeIds.has(nodeData.id)) {
+      nodeData.subType = 'joint';
+    }
+  });
 
   return sceneData;
 }

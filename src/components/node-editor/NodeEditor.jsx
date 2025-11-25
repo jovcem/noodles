@@ -26,8 +26,8 @@ function NodeEditor() {
   // Filter nodes based on nodeFilters
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
-      // Always show mesh and material nodes (they have their own types)
-      if (node.data.nodeType === 'mesh' || node.data.nodeType === 'material') {
+      // Always show mesh, material, and skin nodes (they have their own types)
+      if (node.data.nodeType === 'mesh' || node.data.nodeType === 'material' || node.data.nodeType === 'skin') {
         return true;
       }
 
@@ -75,6 +75,8 @@ function NodeEditor() {
         nodeData = sceneData.meshes.find((m) => m.id === node.id);
       } else if (node.data.nodeType === 'material') {
         nodeData = sceneData.materials.find((m) => m.id === node.id);
+      } else if (node.data.nodeType === 'skin') {
+        nodeData = sceneData.skins?.find((s) => s.id === node.id);
       }
 
       if (nodeData) {
@@ -94,6 +96,15 @@ function NodeEditor() {
         if (materialData) {
           const enterMaterialDetail = useSceneStore.getState().enterMaterialDetail;
           enterMaterialDetail(materialData);
+        }
+      }
+
+      // Handle skin node double-click to open skin detail view
+      if (node.data.nodeType === 'skin') {
+        const skinData = sceneData.skins?.find((s) => s.id === node.id);
+        if (skinData) {
+          const enterSkinDetail = useSceneStore.getState().enterSkinDetail;
+          enterSkinDetail(skinData);
         }
       }
 

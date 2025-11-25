@@ -3,6 +3,7 @@ import ActionButtons from './components/ActionButtons'
 import ViewerPanel from './components/ViewerPanel'
 import NodeEditor from './components/node-editor/NodeEditor'
 import MaterialDetailView from './components/node-editor/MaterialDetailView'
+import SkinDetailView from './components/node-editor/SkinDetailView'
 import PropertyPanel from './components/propertyPane/PropertyPanel'
 import ThemeToggle from './components/ThemeToggle'
 import { useTheme } from './contexts/ThemeContext'
@@ -11,6 +12,7 @@ import { useSceneStore } from './store/sceneStore'
 function App() {
   const { currentTheme } = useTheme();
   const materialDetailMode = useSceneStore((state) => state.materialDetailMode);
+  const skinDetailMode = useSceneStore((state) => state.skinDetailMode);
 
   return (
     <div className="app-container" style={{ backgroundColor: currentTheme.background }}>
@@ -63,6 +65,8 @@ function App() {
         }}>
           {materialDetailMode ? (
             <MaterialDetailView />
+          ) : skinDetailMode ? (
+            <SkinDetailView />
           ) : (
             <>
               <NodeEditor />

@@ -10,6 +10,7 @@ export const NODE_COLORS = {
   node: '#646cff',
   mesh: '#4ade80',
   material: '#f59e0b',
+  skin: '#a855f7',
 };
 
 // Node subtype accent colors (for left border)
@@ -19,6 +20,7 @@ export const NODE_SUBTYPE_COLORS = {
   'mesh': '#4ade80',          // Green - Mesh nodes (matches mesh color)
   'camera': '#3b82f6',        // Blue - Camera nodes
   'skinned-mesh': '#fb923c',  // Orange - Skinned mesh nodes
+  'joint': '#a855f7',         // Purple - Joint/bone nodes (part of skeleton)
   'light': '#fbbf24',         // Yellow - Light nodes (for future use)
 };
 
@@ -29,6 +31,7 @@ export const NODE_SUBTYPE_ICONS = {
   'mesh': '🎭',
   'camera': '📷',
   'skinned-mesh': '🦴',
+  'joint': '🦴',
   'light': '💡',
 };
 
@@ -110,7 +113,7 @@ export const THEMES = {
 
 /**
  * Gets the color for a specific node type
- * @param {string} nodeType - Type of node ('node', 'mesh', 'material')
+ * @param {string} nodeType - Type of node ('node', 'mesh', 'material', 'skin')
  * @returns {string} Hex color code
  */
 export function getNodeColor(nodeType) {
@@ -119,7 +122,7 @@ export function getNodeColor(nodeType) {
 
 /**
  * Gets the accent color for a specific node subtype
- * @param {string} subType - Subtype of node ('transform', 'mesh', 'camera', 'skinned-mesh', 'light', 'empty')
+ * @param {string} subType - Subtype of node ('transform', 'mesh', 'camera', 'skinned-mesh', 'joint', 'light', 'empty')
  * @returns {string} Hex color code
  */
 export function getNodeSubtypeColor(subType) {
@@ -128,7 +131,7 @@ export function getNodeSubtypeColor(subType) {
 
 /**
  * Gets the icon for a specific node subtype
- * @param {string} subType - Subtype of node ('transform', 'mesh', 'camera', 'skinned-mesh', 'light', 'empty')
+ * @param {string} subType - Subtype of node ('transform', 'mesh', 'camera', 'skinned-mesh', 'joint', 'light', 'empty')
  * @returns {string} Icon/emoji string
  */
 export function getNodeSubtypeIcon(subType) {

@@ -15,6 +15,8 @@ export const useSceneStore = create((set, get) => ({
   originalModelUrl: null,
   materialDetailMode: false,
   materialDetailData: null,
+  skinDetailMode: false,
+  skinDetailData: null,
   viewerMode: '3d', // '2d' or '3d'
   isLoadingGraph: false,
 
@@ -76,6 +78,21 @@ export const useSceneStore = create((set, get) => ({
     set({
       materialDetailMode: false,
       materialDetailData: null,
+    });
+  },
+
+  // Skin detail mode actions
+  enterSkinDetail: (skinData) => {
+    set({
+      skinDetailMode: true,
+      skinDetailData: skinData,
+    });
+  },
+
+  exitSkinDetail: () => {
+    set({
+      skinDetailMode: false,
+      skinDetailData: null,
     });
   },
 

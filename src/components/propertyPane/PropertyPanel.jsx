@@ -3,6 +3,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import NodeProperties from './NodeProperties';
 import MeshProperties from './MeshProperties';
 import MaterialProperties from './MaterialProperties';
+import SkinProperties from './SkinProperties';
 
 function PropertyPanel() {
   const { currentTheme } = useTheme();
@@ -25,6 +26,8 @@ function PropertyPanel() {
         return <MeshProperties data={selectedNode} />;
       case 'material':
         return <MaterialProperties data={selectedNode} />;
+      case 'skin':
+        return <SkinProperties data={selectedNode} />;
       default:
         return <div>Unknown node type</div>;
     }
