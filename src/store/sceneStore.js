@@ -22,6 +22,7 @@ export const useSceneStore = create((set, get) => ({
   currentPlayingAnimation: null, // Name of currently playing animation
   modelViewerRef: null, // Reference to model-viewer element
   animationCurrentTime: 0, // Current playback position in seconds
+  drawingMode: false,
 
   // Node filtering state (which subtypes to show)
   nodeFilters: {
@@ -97,6 +98,15 @@ export const useSceneStore = create((set, get) => ({
       skinDetailMode: false,
       skinDetailData: null,
     });
+  },
+
+  // Drawing mode actions
+  enterDrawingMode: () => {
+    set({ drawingMode: true });
+  },
+
+  exitDrawingMode: () => {
+    set({ drawingMode: false });
   },
 
   // Viewer mode actions

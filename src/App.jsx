@@ -6,6 +6,7 @@ import MaterialDetailView from './components/node-editor/MaterialDetailView'
 import SkinDetailView from './components/node-editor/SkinDetailView'
 import PropertyPanel from './components/propertyPane/PropertyPanel'
 import ThemeToggle from './components/ThemeToggle'
+import DrawingOverlay from './components/DrawingOverlay'
 import { useTheme } from './contexts/ThemeContext'
 import { useSceneStore } from './store/sceneStore'
 
@@ -13,6 +14,7 @@ function App() {
   const { currentTheme } = useTheme();
   const materialDetailMode = useSceneStore((state) => state.materialDetailMode);
   const skinDetailMode = useSceneStore((state) => state.skinDetailMode);
+  const drawingMode = useSceneStore((state) => state.drawingMode);
 
   return (
     <div className="app-container" style={{ backgroundColor: currentTheme.background }}>
@@ -75,6 +77,8 @@ function App() {
           )}
         </div>
       </div>
+
+      {drawingMode && <DrawingOverlay />}
     </div>
   )
 }

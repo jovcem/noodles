@@ -8,6 +8,7 @@ function ActionButtons() {
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState('');
   const sceneData = useSceneStore((state) => state.sceneData);
+  const enterDrawingMode = useSceneStore((state) => state.enterDrawingMode);
 
   const handleExport = async () => {
     if (!sceneData) {
@@ -41,6 +42,17 @@ function ActionButtons() {
         }}
       >
         {isExporting ? 'Exporting...' : 'Save to GLTF'}
+      </button>
+
+      <button
+        onClick={enterDrawingMode}
+        style={{
+          ...buttonStyle(currentTheme),
+          opacity: 1,
+          cursor: 'pointer',
+        }}
+      >
+        ✏️ Draw
       </button>
 
       {exportError && (
