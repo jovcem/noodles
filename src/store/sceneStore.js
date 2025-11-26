@@ -21,6 +21,7 @@ export const useSceneStore = create((set, get) => ({
   isLoadingGraph: false,
   currentPlayingAnimation: null, // Name of currently playing animation
   modelViewerRef: null, // Reference to model-viewer element
+  animationCurrentTime: 0, // Current playback position in seconds
 
   // Node filtering state (which subtypes to show)
   nodeFilters: {
@@ -155,6 +156,32 @@ export const useSceneStore = create((set, get) => ({
     if (modelViewerRef) {
       modelViewerRef.pause();
       set({ currentPlayingAnimation: null });
+    }
+  },
+
+  setAnimationCurrentTime: (time) => {
+    set({ animationCurrentTime: time });
+  },
+
+  seekAnimation: (time) => {
+    const modelViewerRef = get().modelViewerRef;
+    if (!modelViewerRef) return;
+
+    const wasPlaying = !modelViewerRef.paused;
+
+    // Workaround: briefly play to enable seeking when paused
+    if (!wasPlaying) {
+      modelViewerRef.play();
+    }
+
+    modelViewerRef.currentTime = time;
+    set({ animationCurrentTime: time });
+
+    // Restore paused state after one frame
+    if (!wasPlaying) {
+      setTimeout(() => {
+        modelViewerRef.pause();
+      }, 16);
     }
   },
 

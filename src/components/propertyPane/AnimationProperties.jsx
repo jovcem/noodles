@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import PropertyRow from './PropertyRow';
 import { propertyPaneStyles } from '../../constants/propertyPaneStyles';
 import { NODE_COLORS } from '../../constants/colorConstants';
@@ -19,8 +20,16 @@ function AnimationProperties({ data }) {
   const playAnimation = useSceneStore((state) => state.playAnimation);
   const pauseAnimation = useSceneStore((state) => state.pauseAnimation);
   const currentPlayingAnimation = useSceneStore((state) => state.currentPlayingAnimation);
+  const modelViewerRef = useSceneStore((state) => state.modelViewerRef);
+  const seekAnimation = useSceneStore((state) => state.seekAnimation);
 
   const isPlaying = currentPlayingAnimation === data.name;
+
+  // Timeline state
+  const [localCurrentTime, setLocalCurrentTime] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const trackRef = useRef(null);
+  const thumbRef = useRef(null);
 
   // Get interpolation type display name
   const getInterpolationDisplay = (interpolation) => {
@@ -64,6 +73,122 @@ function AnimationProperties({ data }) {
     }
   };
 
+  // Timeline helper functions
+  const formatTime = (seconds) => {
+    if (seconds === undefined || seconds === null || isNaN(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getThumbPosition = (currentTime, duration) => {
+    if (!duration) return 0;
+    const percentage = (currentTime / duration) * 100;
+    return Math.max(0, Math.min(100, percentage));
+  };
+
+  const getTimeFromMouseEvent = (e, trackElement, duration) => {
+    if (!trackElement) return 0;
+    const rect = trackElement.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, x / rect.width));
+    return percentage * duration;
+  };
+
+  // Timeline interaction handlers
+  const handleTrackClick = (e) => {
+    if (e.target === thumbRef.current) return;
+    const time = getTimeFromMouseEvent(e, trackRef.current, data.duration);
+    seekAnimation(time);
+    setLocalCurrentTime(time);
+  };
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const time = getTimeFromMouseEvent(e, trackRef.current, data.duration);
+    seekAnimation(time);
+    setLocalCurrentTime(time);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Track playback position with requestAnimationFrame
+  useEffect(() => {
+    if (!isPlaying || !modelViewerRef) {
+      return;
+    }
+
+    let frameId;
+    let running = true;
+
+    const updateTime = () => {
+      if (!running) return;
+
+      if (modelViewerRef) {
+        const currentTime = modelViewerRef.currentTime;
+
+        // Update scrubber position
+        if (currentTime !== undefined && currentTime !== null) {
+          setLocalCurrentTime(currentTime);
+        }
+
+        // Continue loop as long as effect is active
+        frameId = requestAnimationFrame(updateTime);
+      }
+    };
+
+    frameId = requestAnimationFrame(updateTime);
+
+    return () => {
+      running = false;
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+    };
+  }, [isPlaying, modelViewerRef, data.name]);
+
+  // Alternative: Listen for loop event to update at animation boundaries
+  useEffect(() => {
+    if (!modelViewerRef) return;
+
+    const handleLoop = () => {
+      if (isPlaying) {
+        setLocalCurrentTime(0);
+      }
+    };
+
+    modelViewerRef.addEventListener('loop', handleLoop);
+
+    return () => {
+      modelViewerRef.removeEventListener('loop', handleLoop);
+    };
+  }, [modelViewerRef, isPlaying]);
+
+  // Reset time when animation changes
+  useEffect(() => {
+    setLocalCurrentTime(0);
+  }, [data.name]);
+
+  // Document-level drag event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, data.duration]);
+
   const buttonStyle = {
     marginTop: '16px',
     padding: '10px 16px',
@@ -87,6 +212,71 @@ function AnimationProperties({ data }) {
     padding: '0',
     fontSize: 'inherit',
     textAlign: 'left',
+  };
+
+  // Timeline styles
+  const timelineContainerStyle = {
+    marginTop: '12px',
+    marginBottom: '4px',
+  };
+
+  const timeLabelsStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '11px',
+    color: currentTheme.textSecondary,
+    marginBottom: '6px',
+    paddingLeft: '4px',
+    paddingRight: '4px',
+  };
+
+  const trackContainerStyle = {
+    position: 'relative',
+    height: '18px',
+    display: 'flex',
+    alignItems: 'center',
+    cursor: isDragging ? 'grabbing' : 'pointer',
+    padding: '0 4px',
+  };
+
+  const trackBackgroundStyle = {
+    position: 'relative',
+    width: '100%',
+    height: '4px',
+    backgroundColor: currentTheme.borderLight,
+    borderRadius: '2px',
+    overflow: 'visible',
+  };
+
+  // Calculate thumb position (recalculates on every render when localCurrentTime changes)
+  const thumbPosition = getThumbPosition(localCurrentTime, data.duration);
+
+  const progressFillStyle = {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: '100%',
+    backgroundColor: NODE_COLORS.animation,
+    opacity: 0.4,
+    borderRadius: '2px',
+    width: `${thumbPosition}%`,
+    pointerEvents: 'none',
+    transition: isDragging ? 'none' : 'width 0.05s linear',
+  };
+
+  const thumbStyle = {
+    position: 'absolute',
+    left: `${thumbPosition}%`,
+    top: '50%',
+    transform: `translate(-50%, -50%) scale(${isDragging ? 1.15 : 1})`,
+    width: '10px',
+    height: '10px',
+    backgroundColor: NODE_COLORS.animation,
+    borderRadius: '50%',
+    cursor: isDragging ? 'grabbing' : 'grab',
+    pointerEvents: 'auto',
+    transition: isDragging ? 'none' : 'transform 0.15s ease, left 0.05s linear',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
   };
 
   return (
@@ -117,6 +307,65 @@ function AnimationProperties({ data }) {
         >
           {isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
+
+        {/* Timeline Scrubber */}
+        <div style={timelineContainerStyle}>
+          <div style={timeLabelsStyle}>
+            <span>{formatTime(localCurrentTime)}</span>
+            <span>{formatTime(data.duration)}</span>
+          </div>
+          <div
+            ref={trackRef}
+            style={trackContainerStyle}
+            onClick={handleTrackClick}
+          >
+            <div style={trackBackgroundStyle}>
+              <div
+                key={`progress-${thumbPosition}`}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  height: '100%',
+                  backgroundColor: NODE_COLORS.animation,
+                  opacity: 0.4,
+                  borderRadius: '2px',
+                  width: `${thumbPosition}%`,
+                  pointerEvents: 'none',
+                  transition: isDragging ? 'none' : 'width 0.05s linear',
+                }}
+              />
+              <div
+                ref={thumbRef}
+                key={`thumb-${thumbPosition}`}
+                style={{
+                  position: 'absolute',
+                  left: `${thumbPosition}%`,
+                  top: '50%',
+                  transform: `translate(-50%, -50%) scale(${isDragging ? 1.15 : 1})`,
+                  width: '10px',
+                  height: '10px',
+                  backgroundColor: NODE_COLORS.animation,
+                  borderRadius: '50%',
+                  cursor: isDragging ? 'grabbing' : 'grab',
+                  pointerEvents: 'auto',
+                  transition: isDragging ? 'none' : 'transform 0.15s ease, left 0.05s linear',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                }}
+                onMouseDown={handleMouseDown}
+              />
+            </div>
+          </div>
+          <div style={{
+            fontSize: '10px',
+            color: currentTheme.textTertiary,
+            marginTop: '4px',
+            textAlign: 'center',
+            fontFamily: 'monospace',
+          }}>
+            Position: {thumbPosition.toFixed(1)}% • Time: {localCurrentTime.toFixed(2)}s / {data.duration.toFixed(2)}s • Frame: {Math.floor(localCurrentTime * 30)} / {Math.floor(data.duration * 30)} @ 30fps
+          </div>
+        </div>
       </div>
 
       {data.animatedNodes && data.animatedNodes.length > 0 && (
