@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import '@google/model-viewer';
 import { useSceneStore } from '../../store/sceneStore';
 import { useTheme } from '../../contexts/ThemeContext';
-import { NODE_COLORS } from '../../constants/themeConfig';
 
 function ModelViewerWrapper({ modelUrl, style }) {
   const { currentTheme } = useTheme();
@@ -10,14 +9,37 @@ function ModelViewerWrapper({ modelUrl, style }) {
   const isolationMode = useSceneStore((state) => state.isolationMode);
   const isolatedModelUrl = useSceneStore((state) => state.isolatedModelUrl);
   const exitIsolationMode = useSceneStore((state) => state.exitIsolationMode);
-
-  useEffect(() => {
-    // The model-viewer web component is registered globally
-    // No additional setup needed here
-  }, []);
+  const setModelViewerRef = useSceneStore((state) => state.setModelViewerRef);
 
   // Use isolated model URL when in isolation mode, otherwise use the regular model URL
   const displayUrl = isolationMode && isolatedModelUrl ? isolatedModelUrl : modelUrl;
+
+  useEffect(() => {
+    const viewer = modelViewerRef.current;
+
+    // Wait for model-viewer to be ready before registering
+    const handleLoad = () => {
+      setModelViewerRef(viewer);
+    };
+
+    if (viewer) {
+      // If already loaded, register immediately
+      if (viewer.loaded) {
+        setModelViewerRef(viewer);
+      } else {
+        // Otherwise wait for load event
+        viewer.addEventListener('load', handleLoad);
+      }
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (viewer) {
+        viewer.removeEventListener('load', handleLoad);
+      }
+      setModelViewerRef(null);
+    };
+  }, [displayUrl, setModelViewerRef]);
 
   const handleExitIsolation = () => {
     exitIsolationMode();

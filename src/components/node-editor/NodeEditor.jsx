@@ -26,8 +26,8 @@ function NodeEditor() {
   // Filter nodes based on nodeFilters
   const filteredNodes = useMemo(() => {
     return nodes.filter((node) => {
-      // Always show mesh, material, and skin nodes (they have their own types)
-      if (node.data.nodeType === 'mesh' || node.data.nodeType === 'material' || node.data.nodeType === 'skin') {
+      // Always show mesh, material, skin, and animation nodes (they have their own types)
+      if (node.data.nodeType === 'mesh' || node.data.nodeType === 'material' || node.data.nodeType === 'skin' || node.data.nodeType === 'animation') {
         return true;
       }
 
@@ -77,6 +77,8 @@ function NodeEditor() {
         nodeData = sceneData.materials.find((m) => m.id === node.id);
       } else if (node.data.nodeType === 'skin') {
         nodeData = sceneData.skins?.find((s) => s.id === node.id);
+      } else if (node.data.nodeType === 'animation') {
+        nodeData = sceneData.animations?.find((a) => a.id === node.id);
       }
 
       if (nodeData) {

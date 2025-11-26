@@ -11,6 +11,7 @@ export const NODE_COLORS = {
   mesh: '#4ade80',
   material: '#f59e0b',
   skin: '#a855f7',
+  animation: '#FF6B9D',
 };
 
 // Node subtype accent colors (for left border)

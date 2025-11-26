@@ -257,6 +257,56 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
     });
   });
 
+  // Position animations to the left of the scene hierarchy
+  if (sceneData.animations && sceneData.animations.length > 0) {
+    sceneData.animations.forEach((animationData, index) => {
+      // Stack animations vertically on the left side
+      const xPosition = -HORIZONTAL_SPACING * 2;
+      const yPosition = 50 + index * VERTICAL_SPACING;
+
+      nodePositions.set(animationData.id, { x: xPosition, y: yPosition });
+
+      nodes.push({
+        id: animationData.id,
+        type: 'default',
+        data: {
+          label: `🎬 ${animationData.name}\n(${animationData.duration.toFixed(2)}s, ${animationData.channelCount} channels)`,
+          nodeType: 'animation',
+        },
+        position: { x: xPosition, y: yPosition },
+        style: {
+          background: theme.surface,
+          color: theme.text,
+          border: `1px solid ${NODE_COLORS.animation || '#FF6B9D'}`,
+          borderRadius: '8px',
+          padding: '10px',
+          minWidth: '180px',
+        },
+      });
+
+      // Add edges from animation to animated nodes (one edge per unique node)
+      const edgeTargets = new Set();
+      animationData.animatedNodes.forEach((animatedNode) => {
+        // Find the effective non-joint parent for this animated node
+        const effectiveParentId = findEffectiveParent(animatedNode.nodeId);
+        const targetNodeId = effectiveParentId || animatedNode.nodeId;
+
+        // Only create edge if the target node exists in the graph and we haven't already created one
+        if (nodePositions.has(targetNodeId) && !edgeTargets.has(targetNodeId)) {
+          edgeTargets.add(targetNodeId);
+          edges.push({
+            id: `${animationData.id}-${targetNodeId}`,
+            source: animationData.id,
+            target: targetNodeId,
+            type: 'default',
+            animated: true,
+            style: { stroke: NODE_COLORS.animation || '#FF6B9D', strokeWidth: 2 },
+          });
+        }
+      });
+    });
+  }
+
   // Position skins next to their parent meshes
   if (sceneData.skins) {
     sceneData.skins.forEach((skinData) => {

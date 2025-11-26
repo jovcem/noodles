@@ -19,6 +19,8 @@ export const useSceneStore = create((set, get) => ({
   skinDetailData: null,
   viewerMode: '3d', // '2d' or '3d'
   isLoadingGraph: false,
+  currentPlayingAnimation: null, // Name of currently playing animation
+  modelViewerRef: null, // Reference to model-viewer element
 
   // Node filtering state (which subtypes to show)
   nodeFilters: {
@@ -135,4 +137,25 @@ export const useSceneStore = create((set, get) => ({
       light: false,
     },
   }),
+
+  // Animation playback actions
+  setModelViewerRef: (ref) => set({ modelViewerRef: ref }),
+
+  playAnimation: (animationName) => {
+    const modelViewerRef = get().modelViewerRef;
+    if (modelViewerRef) {
+      modelViewerRef.animationName = animationName;
+      modelViewerRef.play();
+      set({ currentPlayingAnimation: animationName });
+    }
+  },
+
+  pauseAnimation: () => {
+    const modelViewerRef = get().modelViewerRef;
+    if (modelViewerRef) {
+      modelViewerRef.pause();
+      set({ currentPlayingAnimation: null });
+    }
+  },
+
 }))

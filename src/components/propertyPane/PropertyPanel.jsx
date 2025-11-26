@@ -4,6 +4,7 @@ import NodeProperties from './NodeProperties';
 import MeshProperties from './MeshProperties';
 import MaterialProperties from './MaterialProperties';
 import SkinProperties from './SkinProperties';
+import AnimationProperties from './AnimationProperties';
 
 function PropertyPanel() {
   const { currentTheme } = useTheme();
@@ -28,6 +29,8 @@ function PropertyPanel() {
         return <MaterialProperties data={selectedNode} />;
       case 'skin':
         return <SkinProperties data={selectedNode} />;
+      case 'animation':
+        return <AnimationProperties data={selectedNode} />;
       default:
         return <div>Unknown node type</div>;
     }

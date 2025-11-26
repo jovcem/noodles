@@ -46,6 +46,7 @@ export async function extractSceneData(document) {
     meshes: [],
     materials: [],
     skins: [],
+    animations: [],
   };
 
   const root = document.getRoot();
@@ -298,6 +299,74 @@ export async function extractSceneData(document) {
     if (skeletonNodeIds.has(nodeData.id)) {
       nodeData.subType = 'joint';
     }
+  });
+
+  // Extract animations
+  const allAnimations = root.listAnimations();
+  allAnimations.forEach((animation, index) => {
+    const animationData = {
+      id: `animation-${index}`,
+      name: animation.getName() || `Animation ${index}`,
+      type: 'animation',
+      duration: 0,
+      channelCount: 0,
+      animatedNodes: new Map(), // Map of nodeId → properties array
+    };
+
+    // Extract channels and group by target node
+    const channelsList = animation.listChannels();
+    animationData.channelCount = channelsList.length;
+
+    channelsList.forEach((channel) => {
+      const targetNode = channel.getTargetNode();
+      const targetPath = channel.getTargetPath();
+      const sampler = channel.getSampler();
+
+      if (!targetNode) return;
+
+      const nodeIndex = nodeIndexMap.get(targetNode);
+      if (nodeIndex === undefined) return;
+
+      const nodeId = `node-${nodeIndex}`;
+      const nodeName = targetNode.getName() || nodeId;
+
+      // Get keyframe count and interpolation from sampler
+      const inputAccessor = sampler?.getInput();
+      const interpolation = sampler?.getInterpolation() || 'LINEAR';
+      const keyframeCount = inputAccessor ? inputAccessor.getCount() : 0;
+
+      // Calculate duration from input accessor (timestamps)
+      if (inputAccessor && inputAccessor.getCount() > 0) {
+        const times = [];
+        for (let i = 0; i < inputAccessor.getCount(); i++) {
+          times.push(inputAccessor.getScalar(i));
+        }
+        const maxTime = Math.max(...times);
+        if (maxTime > animationData.duration) {
+          animationData.duration = maxTime;
+        }
+      }
+
+      // Group properties by node
+      if (!animationData.animatedNodes.has(nodeId)) {
+        animationData.animatedNodes.set(nodeId, {
+          nodeId,
+          nodeName,
+          properties: []
+        });
+      }
+
+      animationData.animatedNodes.get(nodeId).properties.push({
+        path: targetPath, // "translation", "rotation", "scale", "weights"
+        interpolation,
+        keyframeCount,
+      });
+    });
+
+    // Convert Map to array for easier consumption
+    animationData.animatedNodes = Array.from(animationData.animatedNodes.values());
+
+    sceneData.animations.push(animationData);
   });
 
   return sceneData;
