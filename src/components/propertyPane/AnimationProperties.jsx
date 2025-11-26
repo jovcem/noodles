@@ -15,6 +15,9 @@ function AnimationProperties({ data }) {
     listItemStyle,
   } = propertyPaneStyles(currentTheme);
 
+  // Minimum duration threshold - hide timeline for very short animations
+  const MINIMUM_TIMELINE_DURATION = 0.5;
+
   const sceneData = useSceneStore((state) => state.sceneData);
   const setSelectedNode = useSceneStore((state) => state.setSelectedNode);
   const playAnimation = useSceneStore((state) => state.playAnimation);
@@ -75,10 +78,11 @@ function AnimationProperties({ data }) {
 
   // Timeline helper functions
   const formatTime = (seconds) => {
-    if (seconds === undefined || seconds === null || isNaN(seconds)) return '0:00';
+    if (seconds === undefined || seconds === null || isNaN(seconds)) return '0:00.000';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const ms = Math.floor((seconds % 1) * 1000);
+    return `${mins}:${secs.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
   };
 
   const getThumbPosition = (currentTime, duration) => {
@@ -308,7 +312,8 @@ function AnimationProperties({ data }) {
           {isPlaying ? '⏸ Pause' : '▶ Play'}
         </button>
 
-        {/* Timeline Scrubber */}
+        {/* Timeline Scrubber - only show for animations >= 0.5s */}
+        {data.duration >= MINIMUM_TIMELINE_DURATION ? (
         <div style={timelineContainerStyle}>
           <div style={timeLabelsStyle}>
             <span>{formatTime(localCurrentTime)}</span>
@@ -366,6 +371,20 @@ function AnimationProperties({ data }) {
             Position: {thumbPosition.toFixed(1)}% • Time: {localCurrentTime.toFixed(2)}s / {data.duration.toFixed(2)}s • Frame: {Math.floor(localCurrentTime * 30)} / {Math.floor(data.duration * 30)} @ 30fps
           </div>
         </div>
+        ) : (
+          <div style={{
+            marginTop: '12px',
+            padding: '8px',
+            backgroundColor: currentTheme.surface,
+            border: `1px solid ${currentTheme.borderLight}`,
+            borderRadius: '4px',
+            fontSize: '11px',
+            color: currentTheme.textSecondary,
+            textAlign: 'center',
+          }}>
+            Timeline disabled for very short animations (&lt; 0.5s)
+          </div>
+        )}
       </div>
 
       {data.animatedNodes && data.animatedNodes.length > 0 && (
