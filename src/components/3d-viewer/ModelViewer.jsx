@@ -1,5 +1,6 @@
 import { useSceneStore } from '../../store/sceneStore';
 import ModelViewerWrapper from './ModelViewerWrapper';
+import DropZone from '../DropZone';
 
 function ModelViewer() {
   const currentModel = useSceneStore((state) => state.currentModel);
@@ -7,6 +8,7 @@ function ModelViewer() {
   return (
     <div style={containerStyle}>
       <ModelViewerWrapper modelUrl={currentModel} />
+      <DropZone overlay={true} />
     </div>
   );
 }
@@ -16,6 +18,7 @@ const containerStyle = {
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
+  position: 'relative',
 };
 
 export default ModelViewer;

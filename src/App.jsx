@@ -1,7 +1,4 @@
 import { useEffect } from 'react'
-import DropZone from './components/DropZone'
-import ActionButtons from './components/ActionButtons'
-import ThemeToggle from './components/ThemeToggle'
 import Layout1 from './components/layout/Layout1'
 import Layout2 from './components/layout/Layout2'
 import LayoutSelector from './components/layout/LayoutSelector'
@@ -65,24 +62,6 @@ function App() {
         userSelect: 'none',
       }}>
         noodles v.0.1
-      </div>
-
-      <div style={{
-        display: 'flex',
-        gap: '20px',
-        alignItems: 'stretch',
-      }}>
-        <div style={{ flex: 1 }}>
-          <DropZone />
-        </div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}>
-          <ActionButtons />
-          <ThemeToggle />
-        </div>
       </div>
 
       <LayoutSelector />
