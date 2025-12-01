@@ -22,6 +22,7 @@ export const useSceneStore = create((set, get) => ({
   currentPlayingAnimation: null, // Name of currently playing animation
   modelViewerRef: null, // Reference to model-viewer element
   animationCurrentTime: 0, // Current playback position in seconds
+  currentLayout: 1, // Current layout (1 or 2)
 
   // Node filtering state (which subtypes to show)
   nodeFilters: {
@@ -101,6 +102,9 @@ export const useSceneStore = create((set, get) => ({
 
   // Viewer mode actions
   setViewerMode: (mode) => set({ viewerMode: mode }),
+
+  // Layout actions
+  setLayout: (layout) => set({ currentLayout: layout }),
 
   // Node filter actions
   toggleNodeFilter: (subType) => set((state) => ({

@@ -1,12 +1,10 @@
 import { useEffect } from 'react'
 import DropZone from './components/DropZone'
 import ActionButtons from './components/ActionButtons'
-import ViewerPanel from './components/ViewerPanel'
-import NodeEditor from './components/node-editor/NodeEditor'
-import MaterialDetailView from './components/node-editor/MaterialDetailView'
-import SkinDetailView from './components/node-editor/SkinDetailView'
-import PropertyPanel from './components/propertyPane/PropertyPanel'
 import ThemeToggle from './components/ThemeToggle'
+import Layout1 from './components/layout/Layout1'
+import Layout2 from './components/layout/Layout2'
+import LayoutSelector from './components/layout/LayoutSelector'
 import { useTheme } from './contexts/ThemeContext'
 import { useSceneStore } from './store/sceneStore'
 import { loadDemoFile } from './utils/loadDemoFile'
@@ -15,8 +13,7 @@ import { trackPageView } from './utils/analytics'
 
 function App() {
   const { currentTheme } = useTheme();
-  const materialDetailMode = useSceneStore((state) => state.materialDetailMode);
-  const skinDetailMode = useSceneStore((state) => state.skinDetailMode);
+  const currentLayout = useSceneStore((state) => state.currentLayout);
   const loadModel = useSceneStore((state) => state.loadModel);
   const setNodes = useSceneStore((state) => state.setNodes);
   const setEdges = useSceneStore((state) => state.setEdges);
@@ -88,32 +85,9 @@ function App() {
         </div>
       </div>
 
-      <div className="split-container">
-        <div className="viewer-panel" style={{
-          backgroundColor: currentTheme.background,
-          border: `1px solid ${currentTheme.border}`,
-          borderRight: 'none'
-        }}>
-          <ViewerPanel />
-        </div>
+      <LayoutSelector />
 
-        <div className="editor-panel" style={{
-          position: 'relative',
-          backgroundColor: currentTheme.background,
-          border: `1px solid ${currentTheme.border}`
-        }}>
-          {materialDetailMode ? (
-            <MaterialDetailView />
-          ) : skinDetailMode ? (
-            <SkinDetailView />
-          ) : (
-            <>
-              <NodeEditor />
-              <PropertyPanel />
-            </>
-          )}
-        </div>
-      </div>
+      {currentLayout === 1 ? <Layout1 /> : <Layout2 />}
     </div>
   )
 }

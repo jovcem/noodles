@@ -6,12 +6,12 @@ import MaterialProperties from './MaterialProperties';
 import SkinProperties from './SkinProperties';
 import AnimationProperties from './AnimationProperties';
 
-function PropertyPanel() {
+function PropertyPanel({ inline = false }) {
   const { currentTheme } = useTheme();
   const selectedNode = useSceneStore((state) => state.selectedNode);
   const setSelectedNode = useSceneStore((state) => state.setSelectedNode);
 
-  if (!selectedNode) {
+  if (!selectedNode && !inline) {
     return null;
   }
 
@@ -20,6 +20,19 @@ function PropertyPanel() {
   };
 
   const renderProperties = () => {
+    if (!selectedNode) {
+      return (
+        <div style={{
+          padding: '20px',
+          textAlign: 'center',
+          color: currentTheme.textSecondary,
+          fontSize: '13px'
+        }}>
+          Select a node to view properties
+        </div>
+      );
+    }
+
     switch (selectedNode.nodeType) {
       case 'node':
         return <NodeProperties data={selectedNode} />;
@@ -37,12 +50,14 @@ function PropertyPanel() {
   };
 
   return (
-    <div style={panelStyle(currentTheme)}>
+    <div style={inline ? inlinePanelStyle(currentTheme) : panelStyle(currentTheme)}>
       <div style={headerStyle(currentTheme)}>
         <h3 style={titleStyle(currentTheme)}>Properties</h3>
-        <button onClick={handleClose} style={closeButtonStyle(currentTheme)}>
-          ×
-        </button>
+        {!inline && (
+          <button onClick={handleClose} style={closeButtonStyle(currentTheme)}>
+            ×
+          </button>
+        )}
       </div>
       <div style={contentStyle}>{renderProperties()}</div>
     </div>
@@ -58,6 +73,15 @@ const panelStyle = (currentTheme) => ({
   backgroundColor: currentTheme.surface,
   borderLeft: `1px solid ${currentTheme.border}`,
   zIndex: 1000,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+});
+
+const inlinePanelStyle = (currentTheme) => ({
+  width: '100%',
+  height: '100%',
+  backgroundColor: currentTheme.surface,
   display: 'flex',
   flexDirection: 'column',
   overflow: 'hidden',
