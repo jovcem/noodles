@@ -3,6 +3,7 @@ import { useSceneStore } from '../store/sceneStore';
 import { glbToNodes } from '../utils/gltf/glbToNodes';
 import { validateGLTFFile } from '../utils/fileValidation';
 import { useTheme } from '../contexts/ThemeContext';
+import { trackFileUpload } from '../utils/analytics';
 
 function DropZone() {
   const { currentTheme } = useTheme();
@@ -88,6 +89,9 @@ function DropZone() {
         setNodes(nodes);
         setEdges(edges);
         setSceneData(sceneData);
+
+        // Track successful file upload
+        trackFileUpload(file.name.endsWith('.glb') ? 'glb' : 'gltf');
       } catch (error) {
         console.error('Failed to parse GLB file:', error);
         setError(`Failed to parse file: ${error.message}`);

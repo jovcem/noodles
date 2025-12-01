@@ -11,6 +11,7 @@ import { useTheme } from './contexts/ThemeContext'
 import { useSceneStore } from './store/sceneStore'
 import { loadDemoFile } from './utils/loadDemoFile'
 import { glbToNodes } from './utils/gltf/glbToNodes'
+import { trackPageView } from './utils/analytics'
 
 function App() {
   const { currentTheme } = useTheme();
@@ -20,6 +21,11 @@ function App() {
   const setNodes = useSceneStore((state) => state.setNodes);
   const setEdges = useSceneStore((state) => state.setEdges);
   const setSceneData = useSceneStore((state) => state.setSceneData);
+
+  // Track page view on mount
+  useEffect(() => {
+    trackPageView(window.location.pathname);
+  }, []);
 
   // Load demo file if ?demo parameter is present
   useEffect(() => {

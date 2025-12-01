@@ -284,26 +284,8 @@ export function buildReactFlowGraph(sceneData, theme = DARK_THEME) {
         },
       });
 
-      // Add edges from animation to animated nodes (one edge per unique node)
-      const edgeTargets = new Set();
-      animationData.animatedNodes.forEach((animatedNode) => {
-        // Find the effective non-joint parent for this animated node
-        const effectiveParentId = findEffectiveParent(animatedNode.nodeId);
-        const targetNodeId = effectiveParentId || animatedNode.nodeId;
-
-        // Only create edge if the target node exists in the graph and we haven't already created one
-        if (nodePositions.has(targetNodeId) && !edgeTargets.has(targetNodeId)) {
-          edgeTargets.add(targetNodeId);
-          edges.push({
-            id: `${animationData.id}-${targetNodeId}`,
-            source: animationData.id,
-            target: targetNodeId,
-            type: 'default',
-            animated: true,
-            style: { stroke: NODE_COLORS.animation || '#FF6B9D', strokeWidth: 2 },
-          });
-        }
-      });
+      // Animation edges removed - animations are displayed as standalone nodes
+      // Target information is still available in animationData.animatedNodes
     });
   }
 
