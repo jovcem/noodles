@@ -8,6 +8,7 @@ import NodeFilterControls from './NodeFilterControls';
 import Toolbar from '../shared/Toolbar';
 import { getDocument } from '../../utils/gltf/gltfExporter';
 import { exportIsolatedGLB } from '../../utils/gltf/separator';
+import LoadingSpinner from '../shared/LoadingSpinner';
 
 function NodeEditor() {
   const { currentTheme } = useTheme();
@@ -184,9 +185,13 @@ function NodeEditor() {
   if (filteredNodes.length === 0 && nodes.length === 0) {
     return (
       <div style={emptyStateStyle}>
-        <p style={placeholderStyle(currentTheme)}>
-          {isLoadingGraph ? 'Loading scene graph...' : 'Load a GLB file to see the scene graph'}
-        </p>
+        {isLoadingGraph ? (
+          <LoadingSpinner size={60} text="Loading scene graph..." />
+        ) : (
+          <p style={placeholderStyle(currentTheme)}>
+            Load a GLB file to see the scene graph
+          </p>
+        )}
       </div>
     );
   }
@@ -232,6 +237,26 @@ function NodeEditor() {
             zoomable
           />
         </ReactFlow>
+
+        {/* Loading overlay */}
+        {isLoadingGraph && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+            }}
+          >
+            <LoadingSpinner size={60} text="Loading scene graph..." />
+          </div>
+        )}
       </div>
     </div>
   );

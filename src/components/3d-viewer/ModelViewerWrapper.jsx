@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import '@google/model-viewer';
 import { useSceneStore } from '../../store/sceneStore';
 import { useTheme } from '../../contexts/ThemeContext';
+import LoadingSpinner from '../shared/LoadingSpinner';
 
 function ModelViewerWrapper({ modelUrl, style }) {
   const { currentTheme } = useTheme();
@@ -10,6 +11,7 @@ function ModelViewerWrapper({ modelUrl, style }) {
   const isolatedModelUrl = useSceneStore((state) => state.isolatedModelUrl);
   const exitIsolationMode = useSceneStore((state) => state.exitIsolationMode);
   const setModelViewerRef = useSceneStore((state) => state.setModelViewerRef);
+  const isLoadingGraph = useSceneStore((state) => state.isLoadingGraph);
 
   // Use isolated model URL when in isolation mode, otherwise use the regular model URL
   const displayUrl = isolationMode && isolatedModelUrl ? isolatedModelUrl : modelUrl;
@@ -141,6 +143,25 @@ function ModelViewerWrapper({ modelUrl, style }) {
         >
           Exit Isolation
         </button>
+      )}
+
+      {isLoadingGraph && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 999,
+          }}
+        >
+          <LoadingSpinner size={60} text="Parsing model..." />
+        </div>
       )}
     </div>
   );
