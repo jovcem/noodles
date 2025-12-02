@@ -1,9 +1,10 @@
 import { WebIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { cacheDocument } from './gltfExporter';
 
 export async function parseGLB(file) {
   try {
-    const io = new WebIO();
+    const io = new WebIO().registerExtensions(ALL_EXTENSIONS);
 
     const arrayBuffer = await file.arrayBuffer();
 

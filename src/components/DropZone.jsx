@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSceneStore } from '../store/sceneStore';
-import { glbToNodes } from '../utils/gltf/glbToNodes';
-import { validateGLTFFile } from '../utils/fileValidation';
 import { useTheme } from '../contexts/ThemeContext';
 import { trackFileUpload } from '../utils/analytics';
+import { importGLBFromFile } from '../utils/gltf/importer/glbImporter';
+import { importGLTFWithTextures } from '../utils/gltf/importer/gltfImporter';
+import { importFromURL, isValidURL } from '../utils/gltf/importer/urlImporter';
 
 function DropZone({ overlay = false }) {
   const { currentTheme } = useTheme();
@@ -63,6 +64,30 @@ function DropZone({ overlay = false }) {
     };
   }, [overlay]);
 
+  // Cmd+V paste handler for URL import
+  useEffect(() => {
+    if (!overlay) return;
+
+    const handlePaste = async (e) => {
+      // Get clipboard text
+      const clipboardText = e.clipboardData?.getData('text');
+
+      if (!clipboardText) return;
+
+      // Check if it's a valid URL
+      if (!isValidURL(clipboardText)) return;
+
+      // Prevent default paste behavior
+      e.preventDefault();
+
+      // Import from URL
+      await handleURLImport(clipboardText);
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [overlay]);
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -90,51 +115,84 @@ function DropZone({ overlay = false }) {
   };
 
   const handleFiles = async (files) => {
-    if (files && files.length > 0) {
-      const file = files[0];
+    if (!files || files.length === 0) return;
 
-      // Clear previous error
-      setError('');
+    // Clear previous error
+    setError('');
+    setIsLoadingGraph(true);
 
-      // Validate file using utility
-      const validation = validateGLTFFile(file);
-      if (!validation.isValid) {
-        setError(validation.error);
+    try {
+      let result;
+
+      // Detect import type
+      if (files.length === 1 && files[0].name.toLowerCase().endsWith('.glb')) {
+        // Single GLB file
+        result = await importGLBFromFile(files[0]);
+      } else {
+        // GLTF with textures or multiple files
+        result = await importGLTFWithTextures(files);
+      }
+
+      if (!result.success) {
+        setError(result.error);
         return;
       }
 
-      // Revoke previous object URL to prevent memory leak
+      // Cleanup previous URL
       if (currentUrlRef.current) {
         URL.revokeObjectURL(currentUrlRef.current);
       }
+      currentUrlRef.current = result.modelUrl;
 
-      // Create new object URL for the file
-      const modelUrl = URL.createObjectURL(file);
-      currentUrlRef.current = modelUrl;
+      // Update store
+      loadModel(result.modelUrl);
+      setNodes(result.nodes);
+      setEdges(result.edges);
+      setSceneData(result.sceneData);
+      setUploadedFileName(result.metadata.filename || files[0].name);
 
-      // Update store with model URL
-      loadModel(modelUrl);
+      // Track successful upload
+      trackFileUpload(result.metadata.fileType);
+    } catch (error) {
+      console.error('Import failed:', error);
+      setError(`Import failed: ${error.message}`);
+    } finally {
+      setIsLoadingGraph(false);
+    }
+  };
 
-      // Update UI with file name
-      setUploadedFileName(file.name);
+  const handleURLImport = async (url) => {
+    setIsLoadingGraph(true);
+    setError('');
 
-      // Parse GLB and update nodes/edges/sceneData
-      try {
-        setIsLoadingGraph(true);
-        const { nodes, edges, sceneData } = await glbToNodes(file);
-        setNodes(nodes);
-        setEdges(edges);
-        setSceneData(sceneData);
+    try {
+      const result = await importFromURL(url);
 
-        // Track successful file upload
-        trackFileUpload(file.name.endsWith('.glb') ? 'glb' : 'gltf');
-      } catch (error) {
-        console.error('Failed to parse GLB file:', error);
-        setError(`Failed to parse file: ${error.message}`);
-        // Don't clear the filename on error so user knows what failed
-      } finally {
-        setIsLoadingGraph(false);
+      if (!result.success) {
+        setError(result.error);
+        return;
       }
+
+      // Cleanup previous URL
+      if (currentUrlRef.current) {
+        URL.revokeObjectURL(currentUrlRef.current);
+      }
+      currentUrlRef.current = result.modelUrl;
+
+      // Update store
+      loadModel(result.modelUrl);
+      setNodes(result.nodes);
+      setEdges(result.edges);
+      setSceneData(result.sceneData);
+      setUploadedFileName(result.metadata.filename || 'model');
+
+      // Track successful upload
+      trackFileUpload(result.metadata.fileType);
+    } catch (error) {
+      console.error('URL import failed:', error);
+      setError(`URL import failed: ${error.message}`);
+    } finally {
+      setIsLoadingGraph(false);
     }
   };
 
@@ -188,10 +246,10 @@ function DropZone({ overlay = false }) {
           >
             <div style={{ fontSize: '48px', opacity: 0.5 }}>📦</div>
             <div style={{ fontSize: '18px', color: currentTheme.text, fontWeight: 'bold' }}>
-              {hasModel && isDragging ? 'Drop to load new model' : 'Drop GLB file here'}
+              {hasModel && isDragging ? 'Drop to load new model' : 'Drop GLB/GLTF file here'}
             </div>
             <div style={{ fontSize: '14px', color: currentTheme.textSecondary }}>
-              or click to browse
+              or click to browse • Cmd+V to paste URL
             </div>
           </div>
         </div>
@@ -199,7 +257,8 @@ function DropZone({ overlay = false }) {
         <input
           id="file-input-overlay"
           type="file"
-          accept=".glb,.gltf"
+          accept=".glb,.gltf,.png,.jpg,.jpeg,.bin"
+          multiple
           onChange={handleFileInput}
           style={{ display: 'none' }}
         />
@@ -255,7 +314,8 @@ function DropZone({ overlay = false }) {
         <input
           id="file-input"
           type="file"
-          accept=".glb,.gltf"
+          accept=".glb,.gltf,.png,.jpg,.jpeg,.bin"
+          multiple
           onChange={handleFileInput}
           style={{ display: 'none' }}
         />

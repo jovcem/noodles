@@ -1,0 +1,9 @@
+TODO
+
+- check occlusion map in material editor showing twice
+- show camera nodes and set camera by double click
+- play animation with double click
+- decide on which nodes to appear in main node view
+- fix issues with overlapping nodes in main node view 
+- loading state after i drop a glb
+- primitives as seperate nodes in main node view
